@@ -226,7 +226,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //-------------------------------END PROFILE-------------------------------
         return EndProfile();
     }
-
+    //You can create methods to organize group of tasks
     private void SellBuyStuff1(int drinkVendor, int foodVendor, int repair)
     {
         var ME = ObjectManager.Instance.Player;
@@ -238,5 +238,31 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         BuyItems(0, foodVendor, "4540", 20, "Tough Hunk of Bread");
         EndIF();
     }
+
+    #region API/Tasks
+    //For the sake of categorization, documentation for group of related behaviors are placed inside methods
+
+    public void NavigationBehaviors()
+    {
+        //Description:
+        //  Moves the character to the last hotspots starting from the closest hotspot to the player.
+        //Parameters:
+        //  Mapid: Map of the hotspot(s), i.e. 571 - Northrend
+        //  QuestId: Quest if for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  QuestName (optional): Set the quest name for logging and debugging purposes.
+        //  Hotspots: One are more hotspots seperated with ','
+        //  MaxDistanceToHotspot: The distance that will be considered it is close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
+        //  CanFly: Set true to let character using flying if supported for this map.
+        //  CanUseMount: Set true to allow using a ground mount while moving.
+        //  IgnoreCombat: Set true to ignore combat while moving to the destination.
+        //  IgnoreCombatIfMounted: Set true to ignore combat if mounted while moving to the destination.
+        //  AvoidEnemies: Set true to let the bot try to avoid enemies on the path.
+        MoveTo(530, 9485, "Taming the Beast", Hotspots: "(9039.843, -7456.657, 83.334),(9245.210, -7428.717, 35.168)", MaxDistanceToHotspot: 4f);
+    }
+
+    
+#endregion
+
+
 
 }
