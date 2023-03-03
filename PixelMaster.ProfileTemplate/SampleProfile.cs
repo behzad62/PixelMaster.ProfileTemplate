@@ -183,7 +183,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //'ReturnSuccess' means finish current group as soon as a task faild (or all tasks done) but return success
         //Last two options are useful when we dont want to stop the profile if i.e. training a skill or buying items fails.
         StartGroup(onChildFailure: TaskFailureBehavior.Continue);
-            SellBuyStuff1(3882, 3882, 3160, 0, 3158);
+            SellBuyStuff1(3882, 3882, 3160);
             IF(() => ME.Class == UnitClass.Warrior);
                 TrainSkill(1, 3153, "6673");
                 EndIF();
@@ -227,15 +227,15 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         return EndProfile();
     }
 
-    private void SellBuyStuff1(int _drinkVendor, int _foodVendor, int _repair, int _petFood, int _ammoVendor)
+    private void SellBuyStuff1(int drinkVendor, int foodVendor, int repair)
     {
         var ME = ObjectManager.Instance.Player;
-        SellItems(0, _repair, "Sell Stuff", SellWhiteItems: true, SellGreenItems: true, SellTradeGoodItems: true); ;
+        SellItems(0, repair, "Sell Stuff", SellWhiteItems: true, SellGreenItems: true, SellTradeGoodItems: true);
         IF(() => (ME.Class == UnitClass.Paladin || ME.Class == UnitClass.Druid || ME.Class == UnitClass.Shaman || ME.Class == UnitClass.Priest || ME.Class == UnitClass.Warlock), onChildFailure: TaskFailureBehavior.Continue);
-        BuyItems(0, _drinkVendor, "159", 20, "Refreshing Spring Water");
+        BuyItems(0, drinkVendor, "159", 20, "Refreshing Spring Water");
         EndIF();
         IF(() => (ME.Class == UnitClass.Hunter || ME.Class == UnitClass.Rogue || ME.Class == UnitClass.Warlock), onChildFailure: TaskFailureBehavior.Continue);
-        BuyItems(0, _foodVendor, "4540", 20, "Tough Hunk of Bread");
+        BuyItems(0, foodVendor, "4540", 20, "Tough Hunk of Bread");
         EndIF();
     }
 
