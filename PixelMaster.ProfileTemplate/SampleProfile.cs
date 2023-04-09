@@ -38,7 +38,22 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
     /// </summary>
     List<Blackspot> blackspots = new List<Blackspot>()
     {
-        new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=20f},//too many mobs bot die alot
+        new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=1f},//too many mobs bot die alot
+    };
+    /// <summary>
+    /// Ignores mobs and gathering nodes in this area. It is useful to make  bot ignore some gathering nodes in unwanted areas
+    /// </summary>
+    List<Blackspot> ignoredAreas = new List<Blackspot>()
+    {
+                new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=20f},//nodes are unreachable here
+    };
+    /// <summary>
+    /// Define object IDs of wanted objects around the map. Bot will try to interact with any object in this list which found nearby
+    /// </summary>
+    List<int> wantedObjects = new List<int>()
+    {
+        1234,
+        5678,
     };
     /// <summary>
     /// Here you can add mailboxes that bot can use.
@@ -74,8 +89,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
             //Objects
             AvoidMobs = avoidMobs,  //sets to the list defined above
             Blackspots = blackspots,//sets to the list defined above
+            IgnoredAreas = ignoredAreas,//sets to the list defined above
             Mailboxes = mailboxes,  //sets to the list defined above
             Vendors = vendors,      //sets to the list defined above
+            WantedObjects = wantedObjects,
             //Player Settings
             MinPlayerLevel = 1,     //Min. player level for this profile. Profile will finish for player bellow this level
             MaxPlayerLevel = 100,   //Max. player level for this profile. Profile will finish for players above this level
