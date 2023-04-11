@@ -48,7 +48,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
                 new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=20f},//nodes are unreachable here
     };
     /// <summary>
-    /// Define object IDs of wanted objects around the map. Bot will try to interact with any object in this list which found nearby
+    /// Define object IDs of wanted objects around the map. Bot will try to interact with any object in this list found nearby the player
     /// </summary>
     List<int> wantedObjects = new List<int>()
     {
@@ -92,7 +92,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
             IgnoredAreas = ignoredAreas,//sets to the list defined above
             Mailboxes = mailboxes,  //sets to the list defined above
             Vendors = vendors,      //sets to the list defined above
-            WantedObjects = wantedObjects,
+            WantedObjects = wantedObjects, //sets to the list defined above
             //Player Settings
             MinPlayerLevel = 1,     //Min. player level for this profile. Profile will finish for player bellow this level
             MaxPlayerLevel = 100,   //Max. player level for this profile. Profile will finish for players above this level
@@ -1076,7 +1076,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Identifies the aura Id the mob must have to be considered a valid follower
         //          MobUseItemAuraId
         //              [optional; Default: 0]
-        //              
+        //              When set, then will use item with 'ItemID' on the NPC when NPC has this aura ID
+        //          ItemName
+        //              [optional; Default: ""]
+        //              Used with 'MobUseItemAuraId' and will use this item when mob has the given aura.
         //          Hotspots
         //              [optional; Default: ""]
         //              Identifies the custom waypoint for bot visit. used with Hotspots: parameter
@@ -1265,6 +1268,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          AvoidEnemies
         //              [optional; Default: true]
         //              Set true to let the bot try to avoid enemies on the path.
+
         SellMailAndRepair();
         //BEHAVIOR Description:
         //  This behavior can be used to sell items to a vendor. Grey items will be sold automatically on this behavior.

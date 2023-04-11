@@ -10,8 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Fluent-Behaviour-Tree-Std">
+      <HintPath>..\Dependencies\Fluent-Behaviour-Tree-Std.dll</HintPath>
+    </Reference>
     <Reference Include="PixelMaster.Core">
       <HintPath>..\Dependencies\PixelMaster.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PixelMaster.Services">
+      <HintPath>..\Dependencies\PixelMaster.Services.dll</HintPath>
     </Reference>
   </ItemGroup>
 
