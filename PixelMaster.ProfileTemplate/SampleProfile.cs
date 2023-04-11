@@ -524,7 +524,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              REQUIRED
         //              Identifies the object or objects wich behavior will interact. must the the third parameter of behavior.
         //              Can be just one or multiple example "123" "123,456,789"
-        //              Example InteractWithObject(x, x, "171938", "text");  171938 is the if of object to interact
+        //              Example InteractWithObject(x, x, "171938", "text");  171938 is the id of object to interact
         //          QuestName
         //              [optional; Default: ""]
         //              Identifies the text of quest to show in logs when running . must the the fourth parameter of behavior or be used with QuestName: "Quest Name"
@@ -689,7 +689,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         JustInteract(QuestId: 8345, ObjectIds: "180516", QuestName: "The Shrine of Dath'Remar");
     }
 
-    public void Run()
+    public void RunScript()
     {
         //BEHAVIOR Description:
         //  Runs the given macro in game.
@@ -734,6 +734,962 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              [optional; Default: ""]
         //              Identifies the text of quest to show in logs when running. 
         RunTask(Task.Delay(5000), TaskName: "Wait 5 seconds");
+    }
+
+    public void Train()
+    {
+        //BEHAVIOR Description:
+        //  Trains the player with the given spells. Can be class spells or other skills i.e. professions
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example InteractWithObject(1, x, x, "Text");  1 is the id of Map = Kalindor
+        //          TrainerID
+        //              REQUIRED
+        //              Trainer NPC Id.
+        //              Example TrainSkill(1, 16272, "13163");  16272 is the id of the trainer NPC.
+        //          SpellIDs
+        //              REQUIRED
+        //              Spell Ids to learn seperated by ','
+        //              Example TrainSkill(530, 16272,  "13163,1978");  13163 and 1978 are spell IDs to learn
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          TrainerName
+        //              [optional; Default: ""]
+        //              Name of the trainer NPC
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit. used with Hotspots: parameter
+        //              Example TrainSkill(x, x, x, "", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while going to spots if supported for this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving to spots.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to the fishing spots.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to the fishing spots.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        TrainSkill(530, 16272,  "13163,1978,3044,1130,5116,14280,3127,13165,13549,14281,20736");
+    }
+
+    public void Use()
+    {
+        //BEHAVIOR Description:
+        //  Uses the given item. This behavior can be used to use an item at the given position or on a NPC or just at player position.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example UseItem(1, x, x, x);  1 is the id of Map = Kalindor
+        //          QuestId
+        //              REQUIRED 
+        //              Identifies the quest where behavior will be used. Must be value 0 if NumTimes is used
+        //              Example UseItem(x, 9684, x, x, x);  9684 is the id of Quest, behavior consider its done when quest with this id is completed or player dont have this quest
+        //          ItemName
+        //              REQUIRED
+        //              Name of the item to use.
+        //              Example UseItem(x, x, "Shimmering Vessel", x);,  'Shimmering Vessel' is the name of the item to use.
+        //          MobId
+        //              [optional; Default: 0]
+        //              Id of the NPC to use item on. This value is required when TargetMethod is TargettingMethod.MOB or TargettingMethod.MOB_POSITION
+        //              Example UseItem(x, x, x, 15274, TargetMethod: TargettingMethod.MOB);,  '15274' is the id of the mob to use item on.
+        //          QuestName
+        //              [optional; Default: ""]
+        //              Identifies the text of quest to show in logs when running . It is the fifth parameter of the behavior or can be used as QuestName: "Quest Name"
+        //              Example UseItem(x, x, x, QuestName: "Claiming the Light");  "Claiming the Light" is the text to show in logs
+        //          NumTimes 
+        //              [optional; Default: 0]  REQUIRED if QuestId=0
+        //              Identifies number of times item must be used before behavior is considered done.
+        //              Example UseItem(x, x, x, "x", NumTimes: 4);  bot will use the item 4 times then consider it is done.
+        //          ObjectiveIndex
+        //              [optional; Default: 0]
+        //              Identifies the objective Index for the quest and behavior is considered done when this objective of the quest is completed.
+        //              It will be ignored if 'NumTimes' is a non-zero value
+        //              Example UseItem(x, x, x, x, ObjectiveIndex: 2);  behavior will finish as soon as objective index 2 of the quest is completed.
+        //          MinDistance
+        //              [optional; Default: 0]
+        //              Identifies the minimum distance to the target before using the item.
+        //          MaxDistance
+        //              [optional; Default: 5]
+        //              Identifies the maximum distance to the target before using the item.
+        //              Example UseItem(x, x, x, x, MaxDistance: 4);  bot will make sure distance to the target is closer than this distance before trying to use the item.
+        //          MobHpPercentLeft
+        //              [optional; Default: 100.0 ]
+        //              Specifies the maximum HP the target mob must have before it is considered a valid target for item use.
+        //              Example UseItem(x, x, x, x, MobHpPercentLeft: 50.0);  bot will only use item on a mob with Health percent less than or equal to 50
+        //          MobState
+        //              [optional; Default: Alive ]
+        //              When targetting a mob for item usage, then this value identifies the state a mob must have to be considered a valid target.
+        //              MobStateType.Alive - Means mob must be alive
+        //              MobStateType.AliveNotInCombat - Means mob must be alive and not in combat.
+        //              AliveNotInCombat.Dead - Means mob must be dead.
+        //              AliveNotInCombat.DontCare - Means mob state does not matter.
+        //          TargetMethod
+        //              [optional; Default: MOB ]
+        //              This value identifies the target of the item usage.
+        //              TargettingMethod.None - Means just use the item where the player is.
+        //              TargettingMethod.GROUND - Means use the item on a ground position. i.e. on a fire on a building
+        //              TargettingMethod.MOB - Means use the item on a mob by targetting it. In this case 'MobId' must have been set.
+        //              TargettingMethod.MOB_POSITION - Means go to the mob position and use the item. In this case 'MobId' must have been set.
+        //              TargettingMethod.POSITION - Maans go to the position and then use the item. In this case hotspot must have been set. 
+        //          WaitTime
+        //              [optional; Default: 500ms ]
+        //              Identifies the time to wait after item has been used.
+        //              Example UseItem(x, x, x, x, WaitTime: 4000);  bot will wait 4000ms = 4 seconds after item has been used.
+        //          BlacklistTime
+        //              [optional; Default: 180 seconds]
+        //              Identifies the time for blacklist mobs after item is used.
+        //              Example UseItem(x, x, x, x, BlacklistTime: 60);  bot will use the item on a mob and blacklist it for 60 seconds.
+        //           MobHavedAuraId
+        //              [optional; Default: 0 ]
+        //              If set to a value other than zero, then only mobs that have this aura are considered valid item targets.
+        //           MobMissdAuraId
+        //              [optional; Default: 0 ]
+        //              If set to a value other than zero, then only mobs that do not have this aura are considered valid item targets.
+        //          VisitOrder
+        //              [optional; Default: HotspotVisitOrder.Order]
+        //              Identifies the strategy that bot use to visit each waypoint.
+        //              HotspotVisitOrder.Order - Player will go to hotspots in order they are defined.
+        //              HotspotVisitOrder.Random - Player will go to hotspots randomly.
+        //          IsChanneling
+        //              [optional; Default: false]
+        //              Identifies the item effect is a channeling spell and player is expected to channel it for a time equal to 'WaitTime' parameter.
+        //              If player is not channeling in 'WaitTime' duration, bot will use item again.
+        //          DisableFlags
+        //              [optional; Default: ""]
+        //              Options:
+        //                  "Combat" - if this flag is set then bot will disable combat right before using the item.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit.
+        //              Example InteractWithObject(x, x, x, "Text", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given Mob Id
+        UseItem(530, 9684, "Shimmering Vessel", QuestName: "Claiming the Light", TargetMethod: TargettingMethod.POSITION, WaitTime: 10000, Hotspots: "(9851.299, -7522.248, -9.15)");
+    }
+
+    public void Cast()
+    {
+        //BEHAVIOR Description:
+        //  Casts the requested spell. This behavior can be used cast a spell at the given position or on a NPC or just at player position.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example CastSpell(1, x, x, x);  1 is the id of Map = Kalindor
+        //          QuestId
+        //              REQUIRED 
+        //              Identifies the quest where behavior will be used. Must be value 0 if NumTimes is used
+        //              Example CastSpell(x, 9684, x, x, x);  9684 is the id of Quest, behavior consider its done when quest with this id is completed or player dont have this quest
+        //          SpellName
+        //              REQUIRED
+        //              Name of the spell to cast.
+        //              Example CastSpell(x, x, "Arcane Torrent", x);,  'Arcane Torrent' is the name of the spell.
+        //          MobId
+        //              [optional; Default: 0]
+        //              Id of the NPC to cast spell on. This value is required when TargetMethod is TargettingMethod.MOB or TargettingMethod.MOB_POSITION
+        //              Example CastSpell(x, x, x, 15274, TargetMethod: TargettingMethod.MOB);,  '15274' is the id of the mob to cast spell at.
+        //          QuestName
+        //              [optional; Default: ""]
+        //              Identifies the text of quest to show in logs when running . It is the fifth parameter of the behavior or can be used as QuestName: "Quest Name"
+        //              Example CastSpell(x, x, x, QuestName: "Claiming the Light");  "Claiming the Light" is the text to show in logs
+        //          NumTimes 
+        //              [optional; Default: 0]  REQUIRED if QuestId=0
+        //              Identifies number of times spell must be cast before behavior is considered done.
+        //              Example CastSpell(x, x, x, "x", NumTimes: 4);  bot will cast the spell 4 times then consider it is done.
+        //          ObjectiveIndex
+        //              [optional; Default: 0]
+        //              Identifies the objective Index for the quest and behavior is considered done when this objective of the quest is completed.
+        //              It will be ignored if 'NumTimes' is a non-zero value
+        //              Example CastSpell(x, x, x, x, ObjectiveIndex: 2);  behavior will finish as soon as objective index 2 of the quest is completed.
+        //          MinDistance
+        //              [optional; Default: 0]
+        //              Identifies the minimum distance to the target before casting the spell.
+        //          MaxDistance
+        //              [optional; Default: 5]
+        //              Identifies the maximum distance to the target before casting the spell.
+        //              Example CastSpell(x, x, x, x, MaxDistance: 4);  bot will make sure distance to the target is closer than this distance before trying to cast the spell.
+        //          MobHpPercentLeft
+        //              [optional; Default: 100.0 ]
+        //              Specifies the maximum HP the target mob must have before it is considered a valid target for item use.
+        //              Example CastSpell(x, x, x, "Text", MobHpPercentLeft: 90.5f);  bot will cast spell at mob id which HP is percent 90.5 or lower.
+        //          MobState
+        //              [optional; Default: Alive ]
+        //              When targetting a mob for spell cast, then this value identifies the state a mob must have to be considered a valid target.
+        //              MobStateType.Alive - Means mob must be alive
+        //              MobStateType.AliveNotInCombat - Means mob must be alive and not in combat.
+        //              AliveNotInCombat.Dead - Means mob must be dead.
+        //              AliveNotInCombat.DontCare - Means mob state does not matter.
+        //          TargetMethod
+        //              [optional; Default: MOB ]
+        //              This value identifies the target of the spell cast.
+        //              TargettingMethod.None - Means just cast the spell where the player is.
+        //              TargettingMethod.GROUND - Means cast the spell on a ground position. i.e. on a fire on a building
+        //              TargettingMethod.MOB - Means cast the spell on a mob by targetting it. In this case 'MobId' must have been set.
+        //              TargettingMethod.MOB_POSITION - Means go to the mob position and cast the spell. In this case 'MobId' must have been set.
+        //              TargettingMethod.POSITION - Maans go to the position and then cast the spell. In this case a hotspot must have been set. 
+        //          WaitTime
+        //              [optional; Default: 500ms ]
+        //              Identifies the time to wait after spell has been casted.
+        //              Example CastSpell(x, x, x, x, WaitTime: 4000);  bot will wait 4000ms = 4 seconds after spell has been casted.
+        //          BlacklistTime
+        //              [optional; Default: 180 seconds]
+        //              Identifies the time for blacklist mobs after spell is casted.
+        //              Example CastSpell(x, x, x, x, BlacklistTime: 60);  bot will cast the spell on a mob and blacklist it for 60 seconds.
+        //           MobHavedAuraId
+        //              [optional; Default: 0 ]
+        //              If set to a value other than zero, then only mobs that have this aura are considered valid spell targets.
+        //           MobMissdAuraId
+        //              [optional; Default: 0 ]
+        //              If set to a value other than zero, then only mobs that do not have this aura are considered valid spell targets.
+        //          VisitOrder
+        //              [optional; Default: HotspotVisitOrder.Order]
+        //              Identifies the strategy that bot use to visit each waypoint.
+        //              HotspotVisitOrder.Order - Player will go to hotspots in order they are defined.
+        //              HotspotVisitOrder.Random - Player will go to hotspots randomly.
+        //          DisableFlags
+        //              [optional; Default: ""]
+        //              Not Implemented
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit.
+        //              Example InteractWithObject(x, x, x, "Text", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given Mob Id
+        CastSpell(530, 8346, "Arcane Torrent", 15274, "Thirst Unending", MaxDistance: 6);
+    }
+
+    public void WaitBehavior()
+    {
+        //BEHAVIOR Description:
+        //  Waits until the given amount of seconds passed.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          QuestId
+        //              REQUIRED 
+        //              Identifies the quest where behavior will be used. If quest is completed or player does not have this quest then behavior will finish immediately.
+        //              Wait(8483, 30, "The Dwarven Spy");  8483 is the id of Quest, and wait only runs if player has this quest and it is not completed.
+        //          Time
+        //              REQUIRED Default: 30 seconds
+        //              The wait time in seconds.
+        //          SpellIDs
+        //              REQUIRED
+        //              Spell Ids to learn seperated by ','
+        //              Example TrainSkill(530, 16272,  "13163,1978");  13163 and 1978 are spell IDs to learn
+        //          QuestName
+        //              [optional; Default: ""]
+        //              Identifies the text of quest to show in logs when running.
+        //              Example CastSpell(x, x, x, QuestName: "Claiming the Light");  "Claiming the Light" is the text to show in logs
+        Wait(8483, 30, "The Dwarven Spy");
+    }
+
+    public void AbandonQuestBehavior()
+    {
+        //BEHAVIOR Description:
+        //  Abandons the given quest.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          QuestId
+        //              REQUIRED 
+        //              Identifies the quest to be abandoned. 
+        //          QuestName
+        //              [optional; Default: ""]
+        //              Identifies the text of quest to show in logs when running.
+        AbandonQuest(9484, "Taming Rod");
+    }
+
+    public void DefendNPCBehavior()
+    {
+        //BEHAVIOR Description:
+        //  Defends the given NPC by fighting any mob which attacks this NPC. Used for quests that you need to defend a NPC from incoming mobs
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example DefendNpc(1, x, x, "Text");  1 is the id of Map = Kalindor
+        //          QuestId
+        //              REQUIRED 
+        //              Identifies the quest where behavior will be used. If quest is completed or player does not have this quest then behavior will finish immediately.
+        //              DefendNpc(x, 8488, x, "Text");  8488 is the id of Quest, and wait only runs if player has this quest and it is not completed.
+        //          MobId
+        //              REQUIRED
+        //              Id of the NPC to defend.
+        //              Example DefendNpc(x, x, 15402, "Text");,  '15402' is the id of the mob to defend.
+        //          QuestName
+        //              [optional; Default: ""]
+        //              Identifies the text of quest to show in logs when running.
+        //          LimitTime
+        //              [optional; Default: 300000]
+        //              The limiting time for this behavior. After this time is passed then behavior ends.
+        //              The time is in milliseconds.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit. used with Hotspots: parameter
+        //              Example TrainSkill(x, x, x, "", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
+        DefendNpc(530, 8488, 15402, "Unexpected Results");
+    }
+
+    public void LeadNPCBehavior()
+    {
+        //BEHAVIOR Description:
+        //  Leads the given NPC to the given hotspots. Used for quests that NPC follows the player to until reached a specific spot.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example LeadNpc(1, x, x, "Text");  1 is the id of Map = Kalindor
+        //          QuestId
+        //              REQUIRED 
+        //              Identifies the quest where behavior will be used. If quest is completed or player does not have this quest then behavior will finish immediately.
+        //              LeadNpc(x, 8488, x, "Text");  8488 is the id of Quest, and wait only runs if player has this quest and it is not completed.
+        //          MobId
+        //              REQUIRED
+        //              Id of the NPC to lead.
+        //              Example LeadNpc(x, x, 3568, "Text");,  '3568' is the id of the mob to defend.
+        //          QuestName
+        //              [optional; Default: ""]
+        //              Identifies the text of quest to show in logs when running.
+        //          LimitTime
+        //              [optional; Default: 300000]
+        //              The limiting time for this behavior. After this time is passed then behavior ends.
+        //              The time is in milliseconds.
+        //          MobFollowAuraId
+        //              [optional; Default: 0]
+        //              Identifies the aura Id the mob must have to be considered a valid follower
+        //          MobUseItemAuraId
+        //              [optional; Default: 0]
+        //              
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit. used with Hotspots: parameter
+        //              Example TrainSkill(x, x, x, "", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
+        LeadNpc(1, 938, 3568, "Mist", Hotspots: "(10663.67, 1861.15, 1324.25)");
+    }
+
+    public void TamePetBehavior()
+    {
+        //BEHAVIOR Description:
+        //  A behavior for hunters to tame a pet.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example DefendNpc(1, x, x, "Text");  1 is the id of Map = Kalindor
+        //          MobId
+        //              REQUIRED
+        //              Id of the pet to tame.
+        //              Example TamePet(x, 15652);,  '15652' is the id of the pet to tame.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit. used with Hotspots: parameter
+        //              Example TamePet(x, x, Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
+        var ME = ObjectManager.Instance.Player;
+        IF(() => ME.Class == UnitClass.Hunter && !ME.HasActivePet);
+            TamePet(530, 15652);
+        EndIF();
+    }
+
+    public void Fishing()
+    {
+        //BEHAVIOR Description:
+        //  A behavior for fishing normal water. For fishing pools it is not required to use this behavior.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //          FishingSpots
+        //              REQUIRED
+        //              Fishing spots, bot will got to each spot and faces the water and then fish for the given 'FishingDuration'
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          FishingDuration
+        //              [optional; Default: 600]
+        //              The time to fish at each spot in seconds.
+        //          RepeatCount
+        //              [optional; Default: 1]
+        //              Set number of fishing iterations. A value greater than 0 means after bot fished at all spots it will repeat again
+        //          LureIDs
+        //              [optional; Default: null]
+        //              Set id of lures to apply before starting to fish at each spot.
+        //          WaitBeforeCastingPoleMin
+        //              [optional; Default: 800]
+        //              Set the minimum time in milliseconds to wait before casting fishing pole again after previous cast.
+        //          WaitBeforeCastingPoleMax
+        //              [optional; Default: 1200]
+        //              Set the maximum time in milliseconds to wait before casting fishing pole again after previous cast.
+        //          WaitBeforeClickingBobberMin
+        //              [optional; Default: 800]
+        //              Set the minimum time in milliseconds to wait before clicking the bobber after fish caught.
+        //          WaitBeforeClickingBobberMax
+        //              [optional; Default: 1200]
+        //              Set the maximum time in milliseconds to wait before clicking the bobber after fish caught.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while going to spots if supported for this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving to spots.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to the fishing spots.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to the fishing spots.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        FishSpot(MapId: 571, FishingSpots: "(4197.745, -1599.453, 170.3316),(4083.568, -1630.193, 178.6334),(4143.76, -1817.022, 199.6549)", TaskName: "Fishing", FishingDuration: 300, RepeatCount: 5, LureIDs: "1234,5678");
+    }
+
+    public void Vendoring()
+    {
+        //BEHAVIOR Description:
+        //  When ever player bags are full or items need repairing, bot will run this behavior automatically.
+        //  You can also manually invoke it to run this routine in certain points in your profile.
+        //  It will go to the closest vendor defined in the profile or given as a parameter to this method, to sell items,
+        //  Restock foond and drink and ammo and send mail if user set the mail recipient in their settings.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          MinFreeBagSlots
+        //              [optional; Default: 1]
+        //              Set the minimum free bag slots player must have before this routine tries to free bag slots.
+        //              For example if set to 1, if player only have 1 free general bag slot(not mining or other bag slots)
+        //              then bot will try to empty the bags.
+        //          SellGray
+        //              [optional; Default: true]
+        //              Set to true to sell grays while selling items.
+        //          SellWhite
+        //              [optional; Default: false]
+        //              Set to true to sell white items while selling items.
+        //          SellGreen
+        //              [optional; Default: false]
+        //              Set to true to sell green items while selling items.
+        //          SellBlue
+        //              [optional; Default: false]
+        //              Set to true to sell blue items while selling items.
+        //          SellPurple
+        //              [optional; Default: false]
+        //              Set to true to sell epic items while selling items.
+        //          SellBindOnEquips
+        //              [optional; Default: false]
+        //              Set to true to sell BoE items too while selling items. i.e. looted green BoE items.
+        //          SellTradeGoods
+        //              [optional; Default: false]
+        //              Set to true to sell trade good items too while selling items. i.e. crafting materials, cloths etc.
+        //          SellRecipies
+        //              [optional; Default: false]
+        //              Set to true to sell recipies while selling items. i.e. if 'SellGreen' is set then all green recipies will be sold.
+        //          MailGray
+        //              [optional; Default: false]
+        //              Set to true to mail grays while mailing items.
+        //          MailWhite
+        //              [optional; Default: true]
+        //              Set to true to mail white items while mailing items.
+        //          MailGreen
+        //              [optional; Default: true]
+        //              Set to true to mail green items while mailing items.
+        //          MailBlue
+        //              [optional; Default: true]
+        //              Set to true to mail blue items while mailing items.
+        //          MailPurple
+        //              [optional; Default: false]
+        //              Set to true to mail epic items while mailing items.
+        //          MailTradeGoods
+        //              [optional; Default: false]
+        //              Set to true to mail trade good items too while mailing items. i.e. crafting materials, cloths etc.
+        //          MailRecipies
+        //              [optional; Default: false]
+        //              Set to true to mail recipies while mailing items. i.e. if 'MailGreen' is set then all green recipies will be mailed.
+        //          MinDurabilityPercentToRepair
+        //              [optional; Default: 15]
+        //              Set the minimum item durability before this behavior try to repair items.
+        //          FindVendorsAutomatically
+        //              [optional; Default: false]
+        //              Set to true to let the bot to find vendors automatically from the database if not any defined in the profile.
+        //          FindMailboxesAutomatically
+        //              [optional; Default: true]
+        //              Set to true to let the bot to find mailboxes automatically from the database if not any defined in the profile.
+        //          Vendors
+        //              [optional; Default: null]
+        //              Set list of vendors to overwrite the profile vendors.
+        //          Mailboxes
+        //              [optional; Default: null]
+        //              Set list of mailboxes to overwrite the profile mailboxes.
+        //          KeepItems
+        //              [optional; Default: null]
+        //              Set list of item ids to exclude from sell and mailing items.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        SellMailAndRepair();
+        //BEHAVIOR Description:
+        //  This behavior can be used to sell items to a vendor. Grey items will be sold automatically on this behavior.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //          VendorID
+        //              REQUIRED
+        //              Set the Id of the vendor NPC.
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          ItemIDs
+        //              [optional; Default: ""]
+        //              Set id of the items you want to specifically sell. i.e. "1234,5678"
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Set the position(s) of the vendor
+        //              Example Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given vendor
+        //          VendorName
+        //              [optional; Default: ""]
+        //              Set the name of the vendor. It is not required.
+        //          SellWhiteItems
+        //              [optional; Default: false]
+        //              Set to true to sell white items while selling items.
+        //          SellGreenItems
+        //              [optional; Default: false]
+        //              Set to true to sell green items while selling items.
+        //          SellBlueItems
+        //              [optional; Default: false]
+        //              Set to true to sell blue items while selling items.
+        //          SellBoEItems
+        //              [optional; Default: false]
+        //              Set to true to sell BoE items too while selling items. i.e. looted green BoE items.
+        //          SellTradeGoodItems
+        //              [optional; Default: false]
+        //              Set to true to sell trade good items too while selling items. i.e. crafting materials, cloths etc.
+        //          SellRecipies
+        //              [optional; Default: false]
+        //              Set to true to sell recipies while selling items. i.e. if 'SellGreen' is set then all green recipies will be sold.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        SellItems(530, 16920, "Sell Stuff", SellWhiteItems: false, SellGreenItems: true, SellTradeGoodItems: true, SellBoEItems: true, SellRecipies: false);
+
+        //BEHAVIOR Description:
+        //  This behavior can be used to buy items from a vendor.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //          VendorID
+        //              REQUIRED
+        //              Set the Id of the vendor NPC.
+        //          ItemIDs
+        //              REQUIRED
+        //              Set id of the items you want to buy. i.e. "1234,5678"
+        //          RestockQuantity
+        //              REQUIRED
+        //              Set the restock number for buying items. Bot will restock the missing amount in the bags from the vendor.
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Set the position(s) of the vendor
+        //              Example Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given vendor
+        //          VendorName
+        //              [optional; Default: ""]
+        //              Set the name of the vendor. It is not required.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        BuyItems(1, 1691, "4496", 1, TaskName: "Buy 1 Small Brown Pouch");
+    }
+
+    public void Banking()
+    {
+        //BEHAVIOR Description:
+        //  This behavior can be used to put items into a bank.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //          BankerID
+        //              REQUIRED
+        //              Set the Id of the banker NPC.
+        //          ItemIDs
+        //              REQUIRED
+        //              Set id of the items you want to store into bank. i.e. "1234,5678"
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Set the position(s) of the banker
+        //              Example Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given vendor
+        //          KeepAmount
+        //              [optional; Default: 0]
+        //              Set the number you want to keep from each item in the player bags. i.e if set to 5
+        //              bot will make sure 5 of each item remains in the player bags
+        //          BankerName
+        //              [optional; Default: ""]
+        //              Set the name of the banker. It is not required.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        PutToBank(1, BankerID: 1234, ItemIDs: "222,333", TaskName: "Put items into bank", KeepAmount: 5);
+
+        //BEHAVIOR Description:
+        //  This behavior can be used to grab items from a bank.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //          BankerID
+        //              REQUIRED
+        //              Set the Id of the banker NPC.
+        //          ItemIDs
+        //              REQUIRED
+        //              Set id of the items you want to grab from the bank. i.e. "1234,5678"
+        //          RestockQuantity
+        //              REQUIRED
+        //              Set the restock number for grabbing items. Bot will restock the missing amount in the bags from the bank.
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Set the position(s) of the banker
+        //              Example Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given vendor
+        //          BankerName
+        //              [optional; Default: ""]
+        //              Set the name of the banker. It is not required.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        GrabFromBank(1, BankerID: 1234, ItemIDs: "222,333", RestockQuantity: 5, TaskName: "Put items into bank");
+    }
+
+    public void MailBehaviors()
+    {
+        //BEHAVIOR Description:
+        //  This behavior can be used to send mails.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          ItemIDs
+        //              REQUIRED
+        //              Set id of the items you want to mail. i.e. "1234,5678"
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          KeepAmount
+        //              [optional; Default: 0]
+        //              Set the number you want to keep from each item in the player bags. i.e if set to 5
+        //              bot will make sure 5 of each item remains in the player bags
+        //          MinSend
+        //              [optional; Default: 0]
+        //              Set the minimum number you want to mail.
+        //              i.e. if set to 20, bot only mail items if there are atleast 20 items to mail.
+        //          MaxSend
+        //              [optional; Default: 0]
+        //              Set the maiximum number you want to mail.
+        //              i.e. if set to 60, bot will not mail more than 60 items.
+        //          MailAllBoEs
+        //              [optional; Default: true]
+        //              Set to mail all bind on equip items in the player bags.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        MailItems(ItemIDs: "6948", TaskName: "Mail items", KeepAmount: 10, MinSend: 20, MaxSend: 60, MailAllBoEs: true);
+
+        //BEHAVIOR Description:
+        //  This behavior can to open mails in the mailbox.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          AutoRefreshMailbox
+        //              [optional; Default: true]
+        //              Set to true to refresh mailbox when there are too many items are in the mailbox.
+        //              After each batch of mails opened, if there are more mails remained, then bot will refresh the mailbox.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        OpenMails(TaskName: "Open mailbox", AutoRefreshMailbox: true);
+    }
+
+    public void DestroyItemsBehavior()
+    {
+        //BEHAVIOR Description:
+        //  This behavior can be used to destroy items in the player bags.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          ItemIDs
+        //              REQUIRED
+        //              Set id of the items you want to destroy. i.e. "1234,5678"
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          KeepAmount
+        //              [optional; Default: 0]
+        //              Set the number you want to keep from each item in the player bags. i.e if set to 5
+        //              bot will make sure 5 of each item remains in the player bags
+        DestroyItems("6948");
+    }
+
+    public void Hearthstone()
+    {
+        //BEHAVIOR Description:
+        //  This behavior can be used set hearthstone to a given InnKeeper.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //          InnKeeperID
+        //              [optional; Default: true]
+        //              Set the Id of the innkeeper NPC.
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Set the position(s) of the innkeeper
+        //              Example Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given NPC
+        //          InnKeeperName
+        //              [optional; Default: ""]
+        //              Set the name of the innkeeper. It is not required.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        SetHearthstone(1, InnKeeperID: 6737, "Inn Auberdine");
+
+        //BEHAVIOR Description:
+        //  This behavior can be used to use the player hearthstone.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        UseHearthstone(TaskName: "Using HS!");
+    }
+
+    public void Logging()
+    {
+        //BEHAVIOR Description:
+        //  Logs information message in the bot console.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          Message
+        //              REQUIRED
+        //              The message to log.
+        LogInfo("info");
+
+        //BEHAVIOR Description:
+        //  Logs warning message in the bot console.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          Message
+        //              REQUIRED
+        //              The message to log.
+        LogWarning("warning");
+
+        //BEHAVIOR Description:
+        //  Logs error message in the bot console.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          Message
+        //              REQUIRED
+        //              The message to log.
+        LogError("error");
+    }
+
+    public void SpecialQuests()
+    {
+        //BEHAVIOR Description:
+        //  Quest 12641 special behavior.
+        Quest12641();
+        //BEHAVIOR Description:
+        //  Quest 12680 special behavior.
+        Quest12680();
+        //BEHAVIOR Description:
+        //  Quest 12687 special behavior.
+        Quest12687();
+        //BEHAVIOR Description:
+        //  Quest 12701 special behavior.
+        Quest12701();
+        //BEHAVIOR Description:
+        //  Quest 12720 special behavior.
+        Quest12720();
+        //BEHAVIOR Description:
+        //  Quest 12779 special behavior.
+        Quest12779();
+        //BEHAVIOR Description:
+        //  Quest 12801 special behavior.
+        Quest12801();
     }
 #endregion
 
