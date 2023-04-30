@@ -750,10 +750,11 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              REQUIRED
         //              Trainer NPC Id.
         //              Example TrainSkill(1, 16272, "13163");  16272 is the id of the trainer NPC.
-        //          SpellIDs
+        //          SpellINames
         //              REQUIRED
-        //              Spell Ids to learn seperated by ','
-        //              Example TrainSkill(530, 16272,  "13163,1978");  13163 and 1978 are spell IDs to learn
+        //              Spell Names to learn seperated by ';'
+        //              Example TrainSkill(1, 7088, "Apprentice Skinner", TrainerName: "Thuwd", TaskName: "Train Apprentice Skinning"); 7088 is trainer ID and 'Apprentice Skinner' is the skill to train
+        //              TrainSkill(1, x, "Blizzard(Rank 1)"); For spells with ranks, Rank should be put inside '()' immediately after spell name
         //          TaskName
         //              [optional; Default: ""]
         //              The task name for logging and debugging purposes.
