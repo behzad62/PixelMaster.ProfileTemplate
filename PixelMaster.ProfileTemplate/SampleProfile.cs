@@ -754,7 +754,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              REQUIRED
         //              Spell Names to learn seperated by ';'
         //              Example TrainSkill(1, 7088, "Apprentice Skinner", TrainerName: "Thuwd", TaskName: "Train Apprentice Skinning"); 7088 is trainer ID and 'Apprentice Skinner' is the skill to train
-        //              TrainSkill(1, x, "Blizzard(Rank 1)"); For spells with ranks, Rank should be put inside '()' immediately after spell name
+        //              TrainSkill(1, x, "Blizzard(Rank 1)"); For spells with subnames, subname should be put inside '()' immediately after spell name. i.e. Parry(Passive)
         //          TaskName
         //              [optional; Default: ""]
         //              The task name for logging and debugging purposes.
