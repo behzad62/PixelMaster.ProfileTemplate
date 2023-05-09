@@ -388,6 +388,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  LootMode: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
         //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
@@ -416,6 +420,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
         //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
@@ -444,6 +452,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
         //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
@@ -472,6 +484,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
         //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
@@ -500,6 +516,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
         //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
