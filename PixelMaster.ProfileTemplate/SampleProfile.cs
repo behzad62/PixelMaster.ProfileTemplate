@@ -118,7 +118,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
             MailPurple = true,//If true, player will mail purple items when going to to sell/mail sequence. Mailing happens after selling items.
             MailTradeGoodItems = true, //If true, player will also mail trade good items when going to to sell/mail sequence. Mailing happens after selling items.
             MailRecipies = true, //If true, player will also mail recipies when going to to sell/mail sequence. Mailing happens after selling items.
-            //Restock
+            //Restocking
             //Bellow you can define restock list for items you want to restock every time bot is doing repair/sell/mail sequence
 
             //'restockAmount' it means bot will try to restock amount equal to ('restockAmount' - sum of existing item counts in the bags).
