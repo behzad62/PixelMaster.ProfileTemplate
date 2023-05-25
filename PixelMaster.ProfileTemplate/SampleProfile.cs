@@ -1291,6 +1291,60 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Set true to let the bot try to avoid enemies on the path.
 
         SellMailAndRepair();
+
+        //BEHAVIOR Description:
+        //  This behavior can be used to restock foods, drinks, arrows and bullets on demand.
+        //  It will go to the closest vendor defined in the profile or given as a parameter to this method,
+        //  to restock foond and drink and ammo and bullets.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          FindVendorsAutomatically
+        //              [optional; Default: false]
+        //              Set to true to let the bot to find vendors automatically from the database if not any defined in the profile.
+        //          Vendors
+        //              [optional; Default: null]
+        //              Set list of vendors to overwrite the profile vendors.
+        //              If this value not set then the vendors defined in the profile will be used.
+        //          FoodVendors
+        //              [optional; Default: null]
+        //              Set list of food vendors to overwrite the list defined in the profile.
+        //              If this value not set then the restock food vendors defined in the profile will be used.
+        //          DrinkVendors
+        //              [optional; Default: null]
+        //              Set list of drink vendors to overwrite the list defined in the profile.
+        //              If this value not set then the restock drink vendors defined in the profile will be used.
+        //          ArrowVendors
+        //              [optional; Default: null]
+        //              Set list of arrow vendors to overwrite the list defined in the profile.
+        //              If this value not set then the restock arrow vendors defined in the profile will be used.
+        //          BulletVendors
+        //              [optional; Default: null]
+        //              Set list of bullet vendors to overwrite the list defined in the profile.
+        //              If this value not set then the restock bullet vendors defined in the profile will be used.
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while moving and flying is supported in this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving.
+        //          CanUseTaxi
+        //              [optional; Default: true]
+        //              Set true to allow taking taxis while moving to locations.
+        //              Bot assumes player does know the taxi paths.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to different locations.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to different locations.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        Restock();
+
         //BEHAVIOR Description:
         //  This behavior can be used to sell items to a vendor. Grey items will be sold automatically on this behavior.
         //BEHAVIOR ATTRIBUTES:
