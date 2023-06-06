@@ -1585,9 +1585,31 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              [optional; Default: 0]
         //              Set the maiximum number you want to mail.
         //              i.e. if set to 60, bot will not mail more than 60 items.
-        //          MailAllBoEs
+        //          ShouldKeepItemIDs
+        //              [optional; Default: false]
+        //              If set to true but will not mail any item with ID from the 'ItemIDs' parameter.
+        //              If set to false then any item in the bags with ID from the 'ItemIDs' parameter will be mailed.
+        //          MailGray
+        //              [optional; Default: false]
+        //              Set to true to mail grays while mailing items.
+        //          MailWhite
         //              [optional; Default: true]
-        //              Set to mail all bind on equip items in the player bags.
+        //              Set to true to mail white items while mailing items.
+        //          MailGreen
+        //              [optional; Default: true]
+        //              Set to true to mail green items while mailing items.
+        //          MailBlue
+        //              [optional; Default: true]
+        //              Set to true to mail blue items while mailing items.
+        //          MailPurple
+        //              [optional; Default: false]
+        //              Set to true to mail epic items while mailing items.
+        //          MailTradeGoods
+        //              [optional; Default: false]
+        //              Set to true to mail trade good items too while mailing items. i.e. crafting materials, cloths etc.
+        //          MailRecipies
+        //              [optional; Default: false]
+        //              Set to true to mail recipies while mailing items. i.e. if 'MailGreen' is set then all green recipies will be mailed.
         //          CanFly
         //              [optional; Default: true]
         //              Set true to let character using flying while moving and flying is supported in this map.
@@ -1607,7 +1629,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          AvoidEnemies
         //              [optional; Default: true]
         //              Set true to let the bot try to avoid enemies on the path.
-        MailItems(ItemIDs: "6948", TaskName: "Mail items", KeepAmount: 10, MinSend: 20, MaxSend: 60, MailAllBoEs: true);
+        MailItems(ItemIDs: "6948", TaskName: "Mail items", KeepAmount: 10, MinSend: 20, MaxSend: 60, ShouldKeepItemIDs: true);
 
         //BEHAVIOR Description:
         //  This behavior can to open mails in the mailbox.
