@@ -343,6 +343,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  EntryId: NPC id of the quest giver.
         //  QuestName (optional): Set the quest name for logging and debugging purposes.
         //  Hotspots: (optional) quest giver locations seperated by ','. If not given then quest giver location will be retrived from the Database.
+        //  IgnoreCheck: Set to true to ignore checking if player already completed this quest. It is useful for repeatable quests.
         //  MinDistance: Min distance to the quest giver. Not used at the moment.
         //  MaxDistance: Max. distance to the quest giver before trying to interact with it.
         //  WaitTime: amount of time in milliseconds to wait after interacted with the quest giver. Must be a number betweem 500 to 900000
@@ -697,7 +698,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          QuestId
         //              REQUIRED 
         //              Identifies the quest where behavior will be used. 
-        //              Example InteractWithObject(x, 4402, x, "text");  4402 is the id of Quest, behavior consider its done when quest id its completed 
+        //              Example JustInteract(x, 4402, x, "text");  4402 is the id of Quest, behavior consider its done when quest id its completed 
         //          ObjectIds
         //              REQUIRED
         //              Identifies the object wich behavior will interact. 
