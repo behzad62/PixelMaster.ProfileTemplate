@@ -652,7 +652,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          GossipOptions
         //              [optional; Default: "" ]
         //              Identifies the gossip action to send after interact with NPC. used with GossipOptions: "some gossips here, separated by ,"
-        //              Example InteractWithNpc(x, x, x, "Text", GossipOptions: "GossipTitleButton1:Click(),GossipTitleButton1:Click()");  bot click first Gossip, wait 1,5 secs then click again the first Gossip option in the next page
+        //              Example InteractWithNpc(x, x, x, "Text", GossipOptions: "SelectGossipOption(1),SelectGossipOption(1)");  bot click first Gossip, wait 1,5 secs then click again the first Gossip option in the next page
         //          BlacklistTime
         //              [optional; Default: 180 seconds]
         //              Identifies the time for blacklist npcs after interact. used with BlacklistTime: parameter
