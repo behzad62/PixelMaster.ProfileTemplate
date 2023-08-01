@@ -773,7 +773,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Example TrainSkill(1, 16272, "13163");  16272 is the id of the trainer NPC.
         //          SpellINames
         //              REQUIRED
-        //              Spell Names to learn seperated by ';'
+        //              Spell Names to learn seperated by ';' or spell IDs to learn seperated by ','. (it is not recommended to use spell IDs for compatibility with different game versions)
         //              Example TrainSkill(1, 7088, "Apprentice Skinner", TrainerName: "Thuwd", TaskName: "Train Apprentice Skinning"); 7088 is trainer ID and 'Apprentice Skinner' is the skill to train
         //              TrainSkill(1, x, "Blizzard(Rank 1)"); For spells with subnames, subname should be put inside '()' immediately after spell name. i.e. Parry(Passive)
         //          TaskName
