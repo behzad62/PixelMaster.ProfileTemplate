@@ -38,42 +38,34 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
     /// </summary>
     List<Blackspot> blackspots = new List<Blackspot>()
     {
-        new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=1f},//too many mobs bot die alot
+        new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=1f, Faction = PlayerFactions.Neutral},//too many mobs bot die alot
     };
     /// <summary>
     /// Ignores mobs and gathering nodes in this area. It is useful to make  bot ignore some gathering nodes in unwanted areas
     /// </summary>
     List<Blackspot> ignoredAreas = new List<Blackspot>()
     {
-                new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=20f},//nodes are unreachable here
-    };
-    /// <summary>
-    /// Define object IDs of wanted objects around the map. Bot will try to interact with any object in this list found nearby the player
-    /// </summary>
-    List<int> wantedObjects = new List<int>()
-    {
-        1234,
-        5678,
+        new Blackspot{Position= new Vector3(-2774.54f, -703.32f, 5.86f), MapID= 1, Radius=20f, Faction = PlayerFactions.Neutral},//nodes are unreachable here
     };
     /// <summary>
     /// Here you can add mailboxes that bot can use.
     /// </summary>
     List<MailBox> mailboxes = new List<MailBox>()
     {
-        new MailBox{Name="Brill", MapId=0, Position= new Vector3(2238.56f, 254.50f, 34.01f)},//143990
-        new MailBox{Name="Undercity", MapId=0, Position= new Vector3(1554.97f, 235.11f, -43.20f)},//195629
+        new MailBox{Name="Brill", MapId=0, Position= new Vector3(2238.56f, 254.50f, 34.01f), Faction = PlayerFactions.Horde},//143990
+        new MailBox{Name="Undercity", MapId=0, Position= new Vector3(1554.97f, 235.11f, -43.20f), Faction = PlayerFactions.Horde},//195629
     };
     /// <summary>
     /// Here you can add vendors that bot can use.
     /// </summary>
     List<Vendor> vendors = new List<Vendor>()
     {
-        new Vendor{Id=2115, Name="Joshua Kien", MapId=0, Position=new Vector3(1866.02f, 1574.45f, 94.31f), Type=VendorType.Food},//start
-        new Vendor{Id=2116, Name="Blacksmith Rand", MapId=0, Position=new Vector3(1842.44f, 1570.19f, 96.58f), Type=VendorType.Repair},//start
-        new Vendor{Id=5688, Name="Innkeeper Renee", MapId=0, Position=new Vector3(2269.51f, 244.94f, 34.26f), Type=VendorType.Food},//Brill
-        new Vendor{Id=2137, Name="Eliza Callen", MapId=0, Position=new Vector3(2246.33f, 308.24f, 35.19f), Type=VendorType.Repair},//Brill
-        new Vendor{Id=4554, Name="Tawny Grisette", MapId=0, Position=new Vector3(1611.00f, 273.79f, -43.10f), Type=VendorType.Food},//Undercity
-        new Vendor{Id=4556, Name="Gordon Wendham", MapId=0, Position=new Vector3(1610.45f, 283.26f, -43.10f), Type=VendorType.Repair},//Undercity
+        new Vendor{Id=2115, Name="Joshua Kien", MapId=0, Position=new Vector3(1866.02f, 1574.45f, 94.31f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//start
+        new Vendor{Id=2116, Name="Blacksmith Rand", MapId=0, Position=new Vector3(1842.44f, 1570.19f, 96.58f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//start
+        new Vendor{Id=5688, Name="Innkeeper Renee", MapId=0, Position=new Vector3(2269.51f, 244.94f, 34.26f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//Brill
+        new Vendor{Id=2137, Name="Eliza Callen", MapId=0, Position=new Vector3(2246.33f, 308.24f, 35.19f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Brill
+        new Vendor{Id=4554, Name="Tawny Grisette", MapId=0, Position=new Vector3(1611.00f, 273.79f, -43.10f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//Undercity
+        new Vendor{Id=4556, Name="Gordon Wendham", MapId=0, Position=new Vector3(1610.45f, 283.26f, -43.10f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Undercity
     };
     /// <summary>
     /// Creates profile settings for this profile.
@@ -86,38 +78,18 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
             ProfileName = "[H-Quest](01-14)Undead",
             Author = "PixelMaster",
             Description = "Quest Leveling Undead Level 1 to 14!",
+            CheckpointPath = "[H-Quest](01-14)Undead",
             //Objects
             AvoidMobs = avoidMobs,  //sets to the list defined above
             Blackspots = blackspots,//sets to the list defined above
             IgnoredAreas = ignoredAreas,//sets to the list defined above
             Mailboxes = mailboxes,  //sets to the list defined above
             Vendors = vendors,      //sets to the list defined above
-            WantedObjects = wantedObjects, //sets to the list defined above
             //Player Settings
             MinPlayerLevel = 1,     //Min. player level for this profile. Profile will finish for player bellow this level
             MaxPlayerLevel = 100,   //Max. player level for this profile. Profile will finish for players above this level
             MinDurabilityPercent = 15,  //If any of player items durabilities fell bellow this percent, bot will try will go to vendor to repair/sell/mail/restock items
             MinFreeBagSlots = 1,        //If player free general bag slots reach this number, bot will go to vendor to sell/mail/restock items
-            //Death Settings
-            MaxDeathsByOtherPlayersBeforeStop = 0, //if this number is greater than zero and player is killed by other players more than this number, current profile fails and stops.
-            MaxDeathsBeforeStop = 0,    //if this number is greater than zero and player dies more than this number, current profile fails and stops.
-            //Sell Settings
-            SellGrey = true,    //If true, player will sell grey items when going to to sell/mail sequence
-            SellWhite = true,   //If true, player will sell white items when going to to sell/mail sequence
-            SellGreen = true,  //If true, player will sell green items when going to to sell/mail sequence
-            SellBlue = false,   //If true, player will sell blue items when going to to sell/mail sequence
-            SellPurple = false, //If true, player will sell purple items when going to to sell/mail sequence
-            SellIncludesBOEs = false,   //If true, player will also sell BoE items when going to to sell/mail sequence
-            SellIncludesRecipies = false, //If true, player will also sell recipies when going to to sell/mail sequence
-            SellIncludesTradeGoodItems = false, //If true, player will also sell trade good items when going to to sell/mail sequence
-            //Mail Settings
-            MailGrey = false, //If true, player will mail grey items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailWhite = true, //If true, player will mail white items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailGreen = true, //If true, player will mail green items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailBlue = true,  //If true, player will mail blue items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailPurple = true,//If true, player will mail purple items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailTradeGoodItems = true, //If true, player will also mail trade good items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailRecipies = true, //If true, player will also mail recipies when going to to sell/mail sequence. Mailing happens after selling items.
             //Restocking
             //Bellow you can define restock list for items you want to restock every time bot is doing repair/sell/mail sequence
 
@@ -168,6 +140,23 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
             RunMacro(0, "/dance", "for fun");
         EndIF();//ends if
 
+        //You can save custom states inside a profile using SetCheckPoint
+        SetCheckpoint("TB FlightMaster Learned");
+        //You can later check if check point is set or not set
+        IfCheckpointNotSet("TB FlightMaster Learned");
+            //Do something then
+            SetCheckpoint("TB FlightMaster Learned");
+        EndIF();
+        IfCheckpointSet("TB FlightMaster Learned");
+        //Skip doing things
+        EndIF();
+        //Also it is possible to provide an optional value for a check point
+        SetCheckpoint("PlayerLvel", () => ME.Level.ToString());
+        //And it can be ckecked like this:
+        IfCheckpointSet("PlayerLvel", "10");
+        //Skip doing things
+        EndIF();
+
         //Loops example:
         While(() => ME.QuestLog.IsCompleted(6002) == false);//starts while
             IF(() => ME.Inventory.HasItem(15710), onChildFailure: TaskFailureBehavior.Continue);
@@ -184,7 +173,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //'Continue' means continue doing other tasks and when all done return success
         //'ReturnSuccess' means finish current group as soon as a task faild (or all tasks done) but return success
         //Last two options are useful when we dont want to stop the profile if i.e. training a skill or buying items fails.
-        StartGroup(onChildFailure: TaskFailureBehavior.Continue);
+        StartGroup("Train Skills", onChildFailure: TaskFailureBehavior.Continue);
             SellBuyStuff1(3882, 3882, 3160);
             IF(() => ME.Class == UnitClass.Warrior);
                 TrainSkill(1, 3153, "6673");
@@ -207,7 +196,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
                 IF(() => ME.Class == UnitClass.Mage);
                 TrainSkill(1, 5884, "1459");
             EndIF();
-        EndGroup();
+        EndGroup("Train Skills");// here "Train Skills" only passed to show which groups is ended. It has no other purpose.
 
         //To load nested profiles
         //This loads this profile inside the 'Profiles' folder (inside the bot folder)
@@ -216,7 +205,8 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //You get product id when you upload a profile inside the bot server
         //Product key is like a password for your profile and should be unique amoung all products in the server.
         LoadProfileFromServer(productId: 10, productKey: "Your product key");
-
+        //If profile is inside a zip file it can be loaded like this:
+        LoadProfileFromServer(productId: 10, productKey: "Your product key", relativePath: "[H-Quest](01-14)Undead.cs");
         //To load a custom behavior
         //This loads this behavior inside the 'Behaviors' folder (inside the bot folder)
         //If your behaviors needs parameters, you can pass parameters dictionary like bellow to your behavior.
@@ -380,12 +370,13 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
         //  BlacklistTime: Amount of time in seconds to blacklist enemies if pulling failed.
         //  VisitOrder: The hotspot visit order logic. Either random or in order specified.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
         //  AddHotspotsOnlyForFirstMob: if set to true, hotspots are only set (from the database) for the first given mob id. It is useful if you only want to go to the hotspots of the first NPC in the list.
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
-        //  MinMobLevel: Min. mob level to pull.
-        //  MaxMobLevel: Max. mob level to pull.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
         //  LootMode: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
@@ -407,6 +398,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  MinPlayerLevel: Min. level the player must have to do this task.
         //  TaskName (optional): Set the task name for logging and debugging purposes.
         //  KillAllMobs: If set then player will grind any mob in pull range.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  MinHealthPercentBeforePull: Set the min. health percent player must have before trying to engage the enemies. 
         //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
@@ -416,8 +408,8 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
-        //  MinMobLevel: Min. mob level to pull.
-        //  MaxMobLevel: Max. mob level to pull.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
@@ -439,6 +431,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  MinPlayerLevel: Min. level the player must have to do this task.
         //  TaskName (optional): Set the task name for logging and debugging purposes.
         //  KillAllMobs: If set then player will grind any mob in pull range.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  MinHealthPercentBeforePull: Set the min. health percent player must have before trying to engage the enemies. 
         //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
@@ -448,8 +441,8 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
-        //  MinMobLevel: Min. mob level to pull.
-        //  MaxMobLevel: Max. mob level to pull.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
@@ -471,6 +464,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  MinPlayerLevel: Min. level the player must have to do this task.
         //  TaskName (optional): Set the task name for logging and debugging purposes.
         //  KillAllMobs: If set then player will grind any mob in pull range.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  MinHealthPercentBeforePull: Set the min. health percent player must have before trying to engage the enemies. 
         //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
@@ -480,8 +474,8 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
-        //  MinMobLevel: Min. mob level to pull.
-        //  MaxMobLevel: Max. mob level to pull.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
@@ -503,6 +497,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  MinPlayerLevel: Min. level the player must have to do this task.
         //  TaskName (optional): Set the task name for logging and debugging purposes.
         //  KillAllMobs: If set then player will grind any mob in pull range.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  MinHealthPercentBeforePull: Set the min. health percent player must have before trying to engage the enemies. 
         //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
@@ -512,8 +507,8 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
         //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
-        //  MinMobLevel: Min. mob level to pull.
-        //  MaxMobLevel: Max. mob level to pull.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
         //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
@@ -525,6 +520,34 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
         GrindMobsUntil(MapId: 0, MobsKilled: 120, MobIDs: "299,69", TaskName: "Grind to level 4.5", KillAllMobs: false, LootMobs: false, PullRange: 85, HotSpotRange: 55);
+
+        //Description:
+        //  Grinds until certain number of mobs are pulled.
+        //Parameters:
+        //  Mapid: Map of the hotspots, i.e. 530 - Outland
+        //  MobIDs: ',' seperated list of NPCs to grind.
+        //  Hotspots: mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
+        //  TaskName (optional): Set the task name for logging and debugging purposes.
+        //  KillAllMobs: If set then player will grind any mob in pull range.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
+        //  MinHealthPercentBeforePull: Set the min. health percent player must have before trying to engage the enemies. 
+        //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
+        //  BlacklistTime: Amount of time in seconds to blacklist enemies if pulling failed.
+        //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
+        //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
+        //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  PullRange: Bot only pulls enemies within this range.
+        //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 2] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
+        //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
+        //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
+        //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
+        ClearArea(MapId: 0, MobIDs: "299,69", Hotspots:"(1f,2f,3f)(4f,5f,6f)" ,TaskName: "Grind to level 4.5", KillAllMobs: false, LootMobs: false, PullRange: 85, HotSpotRange: 55);
     }
 
     public void InteractBehaviors()
@@ -1098,7 +1121,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Identifies the aura Id the mob must have to be considered a valid follower
         //          MobUseItemAuraId
         //              [optional; Default: 0]
-        //              When set, then will use item with 'ItemID' on the NPC when NPC has this aura ID
+        //              When set, then will use item with 'UseItemName' on the NPC when NPC has this aura ID
         //          ItemName
         //              [optional; Default: ""]
         //              Used with 'MobUseItemAuraId' and will use this item when mob has the given aura.
@@ -1108,6 +1131,18 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Example TrainSkill(x, x, x, "", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
         //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
         //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
+        //          UseItemName
+        //              [optional; Default: ""]
+        //              This is name of the item that should be used on the NPC if it has aura specified by 'MobUseItemAuraId'
+        //              Example LeadNpc(x, x, x, "Text", UseItemName: "Item to use");  "UseItemName" is set to "Item to use"
+        //          CanUseMount
+        //              [optional; Default: "false"]
+        //              Set to true to let the bot use mount while running to the Hotspots
+        //              Example LeadNpc(x, x, x, "Text", CanUseMount: true);  "CanUseMount" is set to true
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: "true"]
+        //              Set to true to ignore combat while character is mounted.
+        //              Example LeadNpc(x, x, x, "Text", IgnoreCombatIfMounted: true);  "CanUseMount" is set to true
         LeadNpc(1, 938, 3568, "Mist", Hotspots: "(10663.67, 1861.15, 1324.25)");
     }
 
@@ -1232,6 +1267,9 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          SellRecipies
         //              [optional; Default: false]
         //              Set to true to sell recipies while selling items. i.e. if 'SellGreen' is set then all green recipies will be sold.
+        //          SellGems
+        //              [optional; Default: false]
+        //              Set to true to sell gems while selling items. i.e. if 'SellGreen' is set then all green gems will be sold.
         //          MailGray
         //              [optional; Default: false]
         //              Set to true to mail grays while mailing items.
@@ -1248,11 +1286,14 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              [optional; Default: false]
         //              Set to true to mail epic items while mailing items.
         //          MailTradeGoods
-        //              [optional; Default: false]
+        //              [optional; Default: true]
         //              Set to true to mail trade good items too while mailing items. i.e. crafting materials, cloths etc.
         //          MailRecipies
-        //              [optional; Default: false]
-        //              Set to true to mail recipies while mailing items. i.e. if 'MailGreen' is set then all green recipies will be mailed.
+        //              [optional; Default: true]
+        //              Set to true to mail gems while mailing items. i.e. if 'MailGreen' is set then all green gems will be mailed.
+        //          MailGems
+        //              [optional; Default: true]
+        //              Set to true to sell gems while selling items. i.e. if 'SellGreen' is set then all green gems will be sold.
         //          MinDurabilityPercentToRepair
         //              [optional; Default: 15]
         //              Set the minimum item durability before this behavior try to repair items.
@@ -1389,6 +1430,9 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          SellRecipies
         //              [optional; Default: false]
         //              Set to true to sell recipies while selling items. i.e. if 'SellGreen' is set then all green recipies will be sold.
+        //          SellGems
+        //              [optional; Default: false]
+        //              Set to true to sell gems while selling items. i.e. if 'SellGreen' is set then all green gems will be sold.
         //          CanFly
         //              [optional; Default: true]
         //              Set true to let character using flying while moving and flying is supported in this map.
@@ -1611,6 +1655,9 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          MailRecipies
         //              [optional; Default: false]
         //              Set to true to mail recipies while mailing items. i.e. if 'MailGreen' is set then all green recipies will be mailed.
+        //          MailGems
+        //              [optional; Default: true]
+        //              Set to true to sell gems while selling items. i.e. if 'SellGreen' is set then all green gems will be sold.
         //          CanFly
         //              [optional; Default: true]
         //              Set true to let character using flying while moving and flying is supported in this map.

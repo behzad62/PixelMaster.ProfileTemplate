@@ -32,29 +32,29 @@ public class Tauran01_14 : IPMProfile
     };
     List<MailBox> mailboxes = new List<MailBox>()
     {
-        new MailBox{Name="Bloodhoof Village", MapId=1, Position= new Vector3(-2338.213f, -367.142f, -8.528f)},//143984
-        new MailBox{Name="Thunder Bluff", MapId=1, Position= new Vector3(-1263.310f, 44.545f, 127.544f)},//143985
-        new MailBox{Name="Camp Taurajo", MapId=1, Position= new Vector3(-2351.58f, -1944.75f ,  95.79f)},//153578
-        new MailBox{Name="X Roads", MapId=1, Position= new Vector3(-443.69f, -2649.08f ,  95.77f)},//143982
-        new MailBox{Name="Razor Hill", MapId=1, Position= new Vector3(322.41f, -4706.90f, 14.68f)},//143981
-        new MailBox{Name="Moonglade", MapId=1, Position= new Vector3(7867.27f, -2575.55f, 486.91f)},//195219
+        new MailBox{Name="Bloodhoof Village", MapId=1, Position= new Vector3(-2338.213f, -367.142f, -8.528f), Faction = PlayerFactions.Horde},//143984
+        new MailBox{Name="Thunder Bluff", MapId=1, Position= new Vector3(-1263.310f, 44.545f, 127.544f), Faction = PlayerFactions.Horde},//143985
+        new MailBox{Name="Camp Taurajo", MapId=1, Position= new Vector3(-2351.58f, -1944.75f ,  95.79f), Faction = PlayerFactions.Horde},//153578
+        new MailBox{Name="X Roads", MapId=1, Position= new Vector3(-443.69f, -2649.08f ,  95.77f), Faction = PlayerFactions.Horde},//143982
+        new MailBox{Name="Razor Hill", MapId=1, Position= new Vector3(322.41f, -4706.90f, 14.68f), Faction = PlayerFactions.Horde},//143981
+        new MailBox{Name="Moonglade", MapId=1, Position= new Vector3(7867.27f, -2575.55f, 486.91f), Faction = PlayerFactions.Horde},//195219
     };
     List<Vendor> vendors = new List<Vendor>()
     {
-        new Vendor{Id=3883, Name="Moodan Sungrain", MapId=1, Position=new Vector3(-2940.840f, -245.957f, 53.809f), Type=VendorType.Food},//start
-        new Vendor{Id=3073, Name="Marjak Keenblade", MapId=1, Position=new Vector3(-2926.321f, -215.715f, 54.176f), Type=VendorType.Repair},//start
-        new Vendor{Id=6747, Name="Innkeeper Kauth", MapId=1, Position=new Vector3(-2365.366f, -347.309f, -8.956f), Type=VendorType.Food},//Bloodhoof Vilage
-        new Vendor{Id=3080, Name="Harant Ironbrace", MapId=1, Position=new Vector3(-2284.467f, -310.260f, -9.424f), Type=VendorType.Repair},//Bloodhoof Vilage
-        new Vendor{Id=8362, Name="Kuruk", MapId=1, Position=new Vector3(-1300.17f, 110.54f, 131.37f), Type=VendorType.Food},//Thunder Bluff
-        new Vendor{Id=2997, Name="Jyn Stonehoof", MapId=1, Position=new Vector3(-1283.917f, 84.360f, 128.727f), Type=VendorType.Repair},//Thunder Bluff
-        new Vendor{Id=7714, Name="Innkeeper Byula", MapId=1, Position=new Vector3(-2376.27f, -1995.74f ,  96.71f), Type=VendorType.Food},//CTaurajo
-        new Vendor{Id=10380, Name="Sanuye Runetotem", MapId=1, Position=new Vector3(-2374.26f, -1948.79f ,  96.09f), Type=VendorType.Repair},//Ctaurajo
-        new Vendor{Id=3934, Name="Innkeeper Boorand Plainswind", MapId=1, Position=new Vector3(-407.12f, -2645.22f ,  96.22f), Type=VendorType.Food},//X Roads
-        new Vendor{Id=3479, Name="Nargal Deatheye", MapId=1, Position=new Vector3(-357.00f, -2568.86f ,  95.79f), Type=VendorType.Repair},//X Roads
-        new Vendor{Id=6928, Name="Innkeeper Grosk", MapId=1, Position=new Vector3(340.36f, -4686.29f ,  16.46f), Type=VendorType.Food},//Razor Hill
-        new Vendor{Id=3165, Name="Ghrawt", MapId=1, Position=new Vector3(362.10f, -4763.84f ,  12.47f), Type=VendorType.Repair},//Razor Hill
-        new Vendor{Id=12026, Name="My'lanna", MapId=1, Position=new Vector3(7970.00f, -2408.71f, 488.93f), Type=VendorType.Food},//Moonglade
-        new Vendor{Id=12024, Name="Meliri", MapId=1, Position=new Vector3(7840.32f, -2562.68f, 489.29f), Type=VendorType.Repair},//Moonglade
+        new Vendor{Id=3883, Name="Moodan Sungrain", MapId=1, Position=new Vector3(-2940.840f, -245.957f, 53.809f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//start
+        new Vendor{Id=3073, Name="Marjak Keenblade", MapId=1, Position=new Vector3(-2926.321f, -215.715f, 54.176f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//start
+        new Vendor{Id=6747, Name="Innkeeper Kauth", MapId=1, Position=new Vector3(-2365.366f, -347.309f, -8.956f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//Bloodhoof Vilage
+        new Vendor{Id=3080, Name="Harant Ironbrace", MapId=1, Position=new Vector3(-2284.467f, -310.260f, -9.424f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Bloodhoof Vilage
+        new Vendor{Id=8362, Name="Kuruk", MapId=1, Position=new Vector3(-1300.17f, 110.54f, 131.37f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//Thunder Bluff
+        new Vendor{Id=2997, Name="Jyn Stonehoof", MapId=1, Position=new Vector3(-1283.917f, 84.360f, 128.727f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Thunder Bluff
+        new Vendor{Id=7714, Name="Innkeeper Byula", MapId=1, Position=new Vector3(-2376.27f, -1995.74f ,  96.71f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//CTaurajo
+        new Vendor{Id=10380, Name="Sanuye Runetotem", MapId=1, Position=new Vector3(-2374.26f, -1948.79f ,  96.09f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Ctaurajo
+        new Vendor{Id=3934, Name="Innkeeper Boorand Plainswind", MapId=1, Position=new Vector3(-407.12f, -2645.22f ,  96.22f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//X Roads
+        new Vendor{Id=3479, Name="Nargal Deatheye", MapId=1, Position=new Vector3(-357.00f, -2568.86f ,  95.79f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//X Roads
+        new Vendor{Id=6928, Name="Innkeeper Grosk", MapId=1, Position=new Vector3(340.36f, -4686.29f ,  16.46f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//Razor Hill
+        new Vendor{Id=3165, Name="Ghrawt", MapId=1, Position=new Vector3(362.10f, -4763.84f ,  12.47f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Razor Hill
+        new Vendor{Id=12026, Name="My'lanna", MapId=1, Position=new Vector3(7970.00f, -2408.71f, 488.93f), Type=VendorType.Food, Faction = PlayerFactions.Horde},//Moonglade
+        new Vendor{Id=12024, Name="Meliri", MapId=1, Position=new Vector3(7840.32f, -2562.68f, 489.29f), Type=VendorType.Repair, Faction = PlayerFactions.Horde},//Moonglade
     };
 
     PMProfileSettings CreateSettings()
@@ -64,6 +64,7 @@ public class Tauran01_14 : IPMProfile
             ProfileName = "[H-Quest](01-14)Tauran",
             Author = "Cava",
             Description = "Quest Leveling Tauran Level 1 to 14!",
+            CheckpointPath= "[H-Quest](01-14)Tauran",
             //Objects
             AvoidMobs = avoidMobs,
             Blackspots = blackspots,
@@ -74,26 +75,6 @@ public class Tauran01_14 : IPMProfile
             MaxPlayerLevel = 100,
             MinDurabilityPercent = 15,
             MinFreeBagSlots = 1,
-            //Death Settings
-            MaxDeathsByOtherPlayersBeforeStop = 0,
-            MaxDeathsBeforeStop = 0,
-            //Sell Settings
-            SellGrey = true,
-            SellWhite = true,
-            SellGreen = false,
-            SellBlue = false,
-            SellPurple = false,
-            SellIncludesBOEs = false,
-            SellIncludesRecipies = false,
-            SellIncludesTradeGoodItems = false,
-            //Mail Settings
-            MailGrey = false,
-            MailWhite = true,
-            MailGreen = true,
-            MailBlue = true,
-            MailPurple = true,
-            MailTradeGoodItems = true,
-            MailRecipies = true,
             //Failure behavior
             OnTaskFailure = TaskFailureBehavior.ReturnFailure,
         };

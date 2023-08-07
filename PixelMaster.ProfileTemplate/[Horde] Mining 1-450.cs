@@ -35,10 +35,6 @@ public class MiningLevelinProfile : IPMProfile //it is important to implement 'I
     {
         new Blackspot(new Vector3(-1004.98f, 8121.48f , -94.94f), 530, 20),
     };
-    List<int> wantedObjects = new List<int>()
-    {
-
-    };
     List<MailBox> mailboxes = new List<MailBox>()
     {
 
@@ -54,38 +50,18 @@ public class MiningLevelinProfile : IPMProfile //it is important to implement 'I
             ProfileName = "[Horde] Minng 1-450",
             Author = "PixelMaster",
             Description = "Horde Mining Level Up (1-450) For Max Level Players.",
+            CheckpointPath = "[Horde] Minng 1-450",
             //Objects
             AvoidMobs = avoidMobs,  //sets to the list defined above
             Blackspots = blackspots,//sets to the list defined above
             IgnoredAreas = ignoredAreas,//sets to the list defined above
             Mailboxes = mailboxes,  //sets to the list defined above
             Vendors = vendors,      //sets to the list defined above
-            WantedObjects = wantedObjects, //sets to the list defined above
             //Player Settings
             MinPlayerLevel = 1,     //Min. player level for this profile. Profile will finish for player bellow this level
             MaxPlayerLevel = 100,   //Max. player level for this profile. Profile will finish for players above this level
             MinDurabilityPercent = 15,  //If any of player items durabilities fell bellow this percent, bot will try will go to vendor to repair/sell/mail/restock items
             MinFreeBagSlots = 1,        //If player free general bag slots reach this number, bot will go to vendor to sell/mail/restock items
-            //Death Settings
-            MaxDeathsByOtherPlayersBeforeStop = 0, //if this number is greater than zero and player is killed by other players more than this number, current profile fails and stops.
-            MaxDeathsBeforeStop = 0,    //if this number is greater than zero and player dies more than this number, current profile fails and stops.
-            //Sell Settings
-            SellGrey = true,    //If true, player will sell grey items when going to to sell/mail sequence
-            SellWhite = true,   //If true, player will sell white items when going to to sell/mail sequence
-            SellGreen = false,  //If true, player will sell green items when going to to sell/mail sequence
-            SellBlue = false,   //If true, player will sell blue items when going to to sell/mail sequence
-            SellPurple = false, //If true, player will sell purple items when going to to sell/mail sequence
-            SellIncludesBOEs = false,   //If true, player will also sell BoE items when going to to sell/mail sequence
-            SellIncludesRecipies = false, //If true, player will also sell recipies when going to to sell/mail sequence
-            SellIncludesTradeGoodItems = false, //If true, player will also sell trade good items when going to to sell/mail sequence
-            //Mail Settings
-            MailGrey = false, //If true, player will mail grey items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailWhite = true, //If true, player will mail white items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailGreen = true, //If true, player will mail green items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailBlue = true,  //If true, player will mail blue items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailPurple = true,//If true, player will mail purple items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailTradeGoodItems = true, //If true, player will also mail trade good items when going to to sell/mail sequence. Mailing happens after selling items.
-            MailRecipies = true, //If true, player will also mail recipies when going to to sell/mail sequence. Mailing happens after selling items.
             //Restocking
             Foods = (20, new int[] { }),
             Drinks = (20, new int[] { }),
