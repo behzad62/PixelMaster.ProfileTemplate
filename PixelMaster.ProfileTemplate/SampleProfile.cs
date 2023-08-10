@@ -153,7 +153,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //Also it is possible to provide an optional value for a check point
         SetCheckpoint("PlayerLvel", () => ME.Level.ToString());
         //And it can be ckecked like this:
-        IfCheckpointSet("PlayerLvel", "10");
+        IfCheckpointSet("PlayerLvel", () => ME.Level.ToString());
         //Skip doing things
         EndIF();
 
@@ -522,7 +522,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         GrindMobsUntil(MapId: 0, MobsKilled: 120, MobIDs: "299,69", TaskName: "Grind to level 4.5", KillAllMobs: false, LootMobs: false, PullRange: 85, HotSpotRange: 55);
 
         //Description:
-        //  Grinds until certain number of mobs are pulled.
+        //  Grinds until the areas around the hotspots are cleared.
         //Parameters:
         //  Mapid: Map of the hotspots, i.e. 530 - Outland
         //  MobIDs: ',' seperated list of NPCs to grind.
@@ -796,7 +796,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Example TrainSkill(1, 16272, "13163");  16272 is the id of the trainer NPC.
         //          SpellINames
         //              REQUIRED
-        //              Spell Names to learn seperated by ';' or spell IDs to learn seperated by ','. (it is not recommended to use spell IDs for compatibility with different game versions)
+        //              Spell Names to learn seperated by ';' or spell IDs to learn seperated by ','. (it is not recommended to use spell Names for compatibility with different game versions)
         //              Example TrainSkill(1, 7088, "Apprentice Skinner", TrainerName: "Thuwd", TaskName: "Train Apprentice Skinning"); 7088 is trainer ID and 'Apprentice Skinner' is the skill to train
         //              TrainSkill(1, x, "Blizzard(Rank 1)"); For spells with subnames, subname should be put inside '()' immediately after spell name. i.e. Parry(Passive)
         //          TaskName
@@ -827,6 +827,51 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              [optional; Default: true]
         //              Set true to let the bot try to avoid enemies on the path.
         TrainSkill(530, 16272,  "13163,1978,3044,1130,5116,14280,3127,13165,13549,14281,20736");
+
+        //BEHAVIOR Description:
+        //  Trains all the available skills at the trainer. Can be class spells or other skills i.e. professions. Accepts list of spells to not train.
+        //BEHAVIOR ATTRIBUTES:
+        //      Attributes:
+        //          MapId
+        //              REQUIRED
+        //              Identifies the map where behavior will be used.
+        //              Example InteractWithObject(1, x, x, "Text");  1 is the id of Map = Kalindor
+        //          TrainerID
+        //              REQUIRED
+        //              Trainer NPC Id.
+        //              Example TrainAllSkills(1, 16272, "13163");  16272 is the id of the trainer NPC.
+        //          SkipSpellINames
+        //              [optional; Default: ""]
+        //              Spell Names to not train, seperated by ';' or spell IDs seperated by ','. (it is not recommended to use spell Names for compatibility with different game versions)
+        //              TrainAllSkills(1, x, "Blizzard(Rank 1)"); For spells with subnames, subname should be put inside '()' immediately after spell name. i.e. Parry(Passive). This will skip training Blizzard rank 1
+        //          TaskName
+        //              [optional; Default: ""]
+        //              The task name for logging and debugging purposes.
+        //          TrainerName
+        //              [optional; Default: ""]
+        //              Name of the trainer NPC
+        //          Hotspots
+        //              [optional; Default: ""]
+        //              Identifies the custom waypoint for bot visit. used with Hotspots: parameter
+        //              Example TrainAllSkills(x, x, x, "", Hotspots: "(0.1,0.2,0.3)");  bot will use Hotspot x=0.1, y=0.2, y=0.3
+        //              More examples "(1,2,3),(4,5,6),(12.12,-5.12,24.5),(7,8,9)" = bot will use this 4 hotspots
+        //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
+        //          CanFly
+        //              [optional; Default: true]
+        //              Set true to let character using flying while going to spots if supported for this map.
+        //          CanUseMount
+        //              [optional; Default: true]
+        //              Set true to allow using a ground mount while moving to spots.
+        //          IgnoreCombat
+        //              [optional; Default: false]
+        //              Set true to ignore combat while moving to the fishing spots.
+        //          IgnoreCombatIfMounted
+        //              [optional; Default: true]
+        //              Set true to ignore combat if mounted while moving to the fishing spots.
+        //          AvoidEnemies
+        //              [optional; Default: true]
+        //              Set true to let the bot try to avoid enemies on the path.
+        TrainAllSkills(530, 16272, "13163,1978,3044,1130,5116,14280,3127,13165,13549,14281,20736");
     }
 
     public void Use()
