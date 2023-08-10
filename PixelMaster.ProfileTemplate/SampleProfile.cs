@@ -842,7 +842,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Example TrainAllSkills(1, 16272, "13163");  16272 is the id of the trainer NPC.
         //          SkipSpellINames
         //              [optional; Default: ""]
-        //              Spell Names to not train, seperated by ';' or spell IDs seperated by ','. (it is not recommended to use spell Names for compatibility with different game versions)
+        //              Spell Names to skip training, seperated by ';' or spell IDs seperated by ','. (it is not recommended to use spell Names for compatibility with different game versions)
         //              TrainAllSkills(1, x, "Blizzard(Rank 1)"); For spells with subnames, subname should be put inside '()' immediately after spell name. i.e. Parry(Passive). This will skip training Blizzard rank 1
         //          TaskName
         //              [optional; Default: ""]
