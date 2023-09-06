@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<Platforms>AnyCPU;x64;x86</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Prism.Core" Version="8.1.97" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Fluent-Behaviour-Tree-Std">
+      <HintPath>..\Dependencies\Fluent-Behaviour-Tree-Std.dll</HintPath>
+    </Reference>
+    <Reference Include="PixelMaster.Core">
+      <HintPath>..\Dependencies\PixelMaster.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PixelMaster.Services">
+      <HintPath>..\Dependencies\PixelMaster.Services.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)PixelMaster\bin\$(Platform)\$(ConfigurationName)\net7.0-windows\Plugins\&quot; /Y /S" />
+  </Target>
+
+</Project>

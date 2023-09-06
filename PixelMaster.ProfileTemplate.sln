@@ -3,18 +3,44 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelMaster.ProfileTemplate", "PixelMaster.ProfileTemplate\PixelMaster.ProfileTemplate.csproj", "{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelMaster.ProfileTemplate", "PixelMaster.ProfileTemplate\PixelMaster.ProfileTemplate.csproj", "{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoFMs", "AutoFMs\AutoFMs.csproj", "{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Debug|x64.ActiveCfg = Debug|X64
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Debug|x64.Build.0 = Debug|X64
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Debug|x86.Build.0 = Debug|Any CPU
 		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Release|x64.ActiveCfg = Release|X64
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Release|x64.Build.0 = Release|X64
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Release|x86.ActiveCfg = Release|Any CPU
+		{B0762E94-BDF8-4069-9B45-99A19DEC9BB1}.Release|x86.Build.0 = Release|Any CPU
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Debug|x64.ActiveCfg = Debug|x64
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Debug|x64.Build.0 = Debug|x64
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Debug|x86.ActiveCfg = Debug|x86
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Debug|x86.Build.0 = Debug|x86
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Release|x64.ActiveCfg = Release|x64
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Release|x64.Build.0 = Release|x64
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Release|x86.ActiveCfg = Release|x86
+		{B43BFFF0-F275-4ECA-8DEF-EA8A5EC0F78D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

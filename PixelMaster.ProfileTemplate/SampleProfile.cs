@@ -321,6 +321,39 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  IgnoreCombatIfMounted: Set true to ignore combat if mounted while moving to the destination.
         //  AvoidEnemies: Set true to let the bot try to avoid enemies on the path.
         TakeTaxi(StartFlightMasterId: 17554, EndFlightMasterId: 17555, TaskName: "Fly Exodar");
+
+        //Description:
+        //  Moves the character to the 'Hotspot', then faces the 'Facelocation' and starts moving forward for the given 'MoveTime'.
+        //Parameters:
+        //  Mapid: Map of the hotspot(s), i.e. 530 - Outland
+        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  Hotspot: The starting point. Player moves to this location then performs moving.
+        //  Facelocation: The position to face before starting to move forward.
+        //  AngleThreshold: the facing angle accuracy threshold.
+        //  MoveTime: The amount of time that the character moves forward before stops moving.
+        //  QuestName: Sets the quest name for logging and debugging purposes.
+        //  Dismount: Set to true to force the character to dismount when moves forward.
+        //  CanFly: Set true to let character using flying if supported for this map while going to the start position.
+        //  CanUseMount: Set true to allow using a ground mount while moving to the start position.
+        //  CanUseTaxi: Set true to allow taking taxis. Use this option if you know player character knows taxi paths.
+        //  IgnoreCombat: Set true to ignore combat while moving to the start position.
+        //  IgnoreCombatIfMounted: Set true to ignore combat if mounted while moving to the start position.
+        //  AvoidEnemies: Set true to let the bot try to avoid enemies on the path to the start position.
+        MoveForward(MapId: 1, QuestId: 0, Hotspot: "(1,2,3)", Facelocation: "(4,5,6)", AngleThreshold: 5, MoveTime: 1000);
+
+        //Description:
+        //  Will search for and moves the player to the nearest object then finishes the behavior,
+        //  It can be useful when the objects arent interactable and you need to use an item or cast spell near the object.
+        //Parameters:
+        //  Mapid: Map of the hotspot(s), i.e. 530 - Outland
+        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  ObjectIds: List of objects to search for.
+        //  QuestName: Sets the quest name for logging and debugging purposes.
+        //  ObjectiveIndex: If set bot checks if objective is already completed before doing this behavior.
+        //  MinDistance: the minimum distance to the object when player moves to it.
+        //  MaxDistance: the maximum distance to the object when player moves to it.
+        //  CollectionDistance: Player only moves to the objects closer than this distance to the player
+        MoveToNearObject(MapId: 1, QuestId: 0, ObjectIds: "1235,4451", CollectionDistance: 50);
     }
 
     public void QuestPickUpTurnIn()
@@ -377,7 +410,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
         //  MinMobLevel: Min. mob level bellow the player level to pull.
         //  MaxMobLevel: Max. mob level above the player level to pull.
-        //  LootMode: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  LootMode: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
         //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
@@ -388,6 +421,38 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
         KillMobs(MapId: 0, QuestId: 33, MobIDs: "299,69", QuestName: "Wolves Across the Border", ObjectiveIndex: 1, LootMobs: true, PullRange: 85, HotSpotRange: 55);
+
+        //Description:
+        //  Kills the given NPCs until the corresponding objectives are completed. If player does not have the quest or this quest is already completed, this behavior ends.
+        //Parameters:
+        //  Mapid: Map of the quest, i.e. 530 - Outland
+        //  QuestId: Quest id for this task. This behavior completes if player does not have this quest or quest is completed.
+        //  MobIDs: ',' seperated list of NPCs:ObjectiveIds pair. i.e. 299:1,69:2 , here 299 is NPC Id and 1 is the objective index.
+        //  QuestName (optional): Set the quest name for logging and debugging purposes.
+        //  ObjectiveIndex: If greater than 0, then this behavior completes as soon as this objective is completed.
+        //  Hotspots: (optional) mob locations formatted as objectiveId:Hotspots and seperated by ';'. If not given then mob locations will be retrived from the Database.
+        //  MinHealthPercentBeforePull: Set the min. health percent player must have before trying to engage the enemies. 
+        //  MinPowerPercentBeforePull: Set the min. power percent player must have before trying to engage the enemies. Only applicable for mana users.
+        //  BlacklistTime: Amount of time in seconds to blacklist enemies if pulling failed.
+        //  VisitOrder: The hotspot visit order logic. Either random or in order specified.
+        //  KillBetweenHotspots: Set to true to allow pulling targets even if they are not in the range of 'HotSpotRange'.
+        //  AddHotspotsOnlyForFirstMob: if set to true, hotspots are only set (from the database) for the first given mob id. It is useful if you only want to go to the hotspots of the first NPC in the list.
+        //  Hotspots: (optional) mob locations seperated by ','. If not given then mob locations will be retrived from the Database.
+        //  Safespots: If set, when player is in danger while fighting enemies, it will run to the closest spot in the list.
+        //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
+        //  MinMobLevel: Min. mob level bellow the player level to pull.
+        //  MaxMobLevel: Max. mob level above the player level to pull.
+        //  LootMode: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
+        //  PullRange: Bot only pulls enemies within this range.
+        //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
+        //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
+        //  CanFly: [optional; Default: true] Set true to let character using flying while moving and flying is supported in this map.
+        //  CanUseMount: [optional; Default: true] Set true to allow using a ground mount while moving.
+        //  CanUseTaxi: [optional; Default: true] Set true to allow taking taxis while moving to locations. Bot assumes player does know the taxi paths. 
+        //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
+        //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
+        //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
+        KillMultiMobs(MapId: 0, QuestId: 33, MobIDs: "299:1,69:2", QuestName: "Wolves Across the Border", Hotspots: "1:(1,2,3); 2:(4,5,6)(7,8,9)", LootMobs: true, PullRange: 85, HotSpotRange: 55);
 
         //Description:
         //  Grinds until player level is reached.
@@ -410,7 +475,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
         //  MinMobLevel: Min. mob level bellow the player level to pull.
         //  MaxMobLevel: Max. mob level above the player level to pull.
-        //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  LootMobs: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
         //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
@@ -443,7 +508,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
         //  MinMobLevel: Min. mob level bellow the player level to pull.
         //  MaxMobLevel: Max. mob level above the player level to pull.
-        //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  LootMobs: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
         //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
@@ -476,7 +541,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
         //  MinMobLevel: Min. mob level bellow the player level to pull.
         //  MaxMobLevel: Max. mob level above the player level to pull.
-        //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  LootMobs: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
         //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
@@ -509,7 +574,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
         //  MinMobLevel: Min. mob level bellow the player level to pull.
         //  MaxMobLevel: Max. mob level above the player level to pull.
-        //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  LootMobs: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
         //  MaxPullCount: [optional; Default: 1] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
@@ -537,7 +602,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  PriorityTargets: ',' seperated list of high priority NPCs to kill.
         //  MinMobLevel: Min. mob level bellow the player level to pull.
         //  MaxMobLevel: Max. mob level above the player level to pull.
-        //  LootMobs: If set, bot will loot mobs that killed even if the used disabled looting in the settings.
+        //  LootMobs: If set, bot will loot mobs that killed even if the user disabled looting in the settings.
         //  PullRange: Bot only pulls enemies within this range.
         //  HotSpotRange: Bot only starts searching for enemies when any hotspot distance to the player is less than this value.
         //  MaxPullCount: [optional; Default: 2] Bot will try to choose targets that will not cause more enemies than this value to be pulled.  
@@ -1884,6 +1949,13 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //BEHAVIOR Description:
         //  Quest 12801 special behavior.
         Quest12801();
+    }
+
+    public void RefreshLockedDoors()
+    {
+        //Bot will avoid ways that are blocked by locked doors (example doors at Tunnel from Searing Gorge to Loch Modan).
+        //If you know that you got a key in your profile your can use this behavior so Bot will be informed of the possible new ways openning.
+        RefreshLockedDoors();
     }
 #endregion
 
