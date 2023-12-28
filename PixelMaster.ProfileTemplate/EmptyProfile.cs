@@ -62,11 +62,11 @@ public class EmptyProfile : IPMProfile //it is important to implement 'IPMProfil
             MaxPlayerLevel = 100,   //Max. player level for this profile. Profile will finish for players above this level
             MinDurabilityPercent = 15,  //If any of player items durabilities fell bellow this percent, bot will try will go to vendor to repair/sell/mail/restock items
             MinFreeBagSlots = 1,        //If player free general bag slots reach this number, bot will go to vendor to sell/mail/restock items
-            //Restocking
-            Foods = (20, new int[] {  }),
-            Drinks = (20, new int[] {  }),
-            Arrows = (1000, new int[] {  }),
-            Bullets = (1000, new int[] {  }),
+            //Restocking (restock amount, vendor IDs)
+            Foods = (0, new int[] {  }),
+            Drinks = (0, new int[] {  }),
+            Arrows = (0, new int[] {  }),
+            Bullets = (0, new int[] {  }),
 
             //Keep items are items you want to skip from selling or mailing
             KeepItems = new List<int>
