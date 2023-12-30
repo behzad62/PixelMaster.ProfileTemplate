@@ -204,6 +204,11 @@ namespace CombatClasses
                         if (IsSpellReady("Cone of Cold"))
                             return CastAtDirection(targetedEnemy.Position, "Cone of Cold");
                     }
+                    else if(targetedEnemy.HealthPercent > 60)
+                    {
+                        if (IsSpellReady("Frost Nova"))
+                            return CastAtPlayerLocation("Frost Nova");
+                    }
                 }
                 if (IsSpellReadyOrCasting("Frostbolt") && !IsSpellCasting("Fireball"))
                     return CastAtTarget("Frostbolt");
