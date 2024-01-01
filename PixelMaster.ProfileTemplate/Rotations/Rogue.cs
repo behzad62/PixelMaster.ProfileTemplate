@@ -46,7 +46,7 @@ namespace CombatClasses
                     return CastAtPlayer("Stealth");
                 if(targetedEnemy.CreatureType == CreatureType.Humanoid && IsSpellReady("Sap") && !targetedEnemy.HasDeBuff("Sap"))
                     return CastAtTarget("Sap");
-                if (player.IsStealthed && (IsSpellReady("Ambush") || player.Power < 60))
+                if (player.IsStealthed && (IsSpellReady("Ambush") || player.Power < 62))
                     return CastAtTarget("Ambush", facing: SpellFacingFlags.BehindAndFaceTarget);
             }
             if (IsSpellReady("Shoot"))

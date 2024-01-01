@@ -86,12 +86,16 @@ namespace CombatClasses
             if (player.HealthPercent < 30)
             {
                 if (IsSpellReady("Defensive Stance") && player.Form != ShapeshiftForm.DefensiveStance)
+                {
                     return CastAtPlayer("Defensive Stance");
+                }
             }
             else
             {
                 if (IsSpellReady("Battle Stance") && player.Form != ShapeshiftForm.BattleStance)
+                {
                     return CastAtPlayer("Battle Stance");
+                }
             }
             //Burst
             if (dynamicSettings.BurstEnabled)
@@ -154,7 +158,7 @@ namespace CombatClasses
             //Targeted enemy
             if (targetedEnemy != null)
             {
-                if(targetedEnemy.DistanceSquaredToPlayer >= 64 && targetedEnemy.DistanceSquaredToPlayer < 20 * 20)
+                if(targetedEnemy.DistanceSquaredToPlayer >= 64 && targetedEnemy.DistanceSquaredToPlayer < 25 * 25)
                 {
                     if (IsSpellReady("Charge"))
                         return CastAtTarget("Charge");
@@ -163,6 +167,8 @@ namespace CombatClasses
                 {
                     if (IsSpellReady("Pummel") && targetedEnemy.DistanceSquaredToPlayer < 64)
                         return CastAtTarget("Pummel");
+                    if (player.Form == ShapeshiftForm.DefensiveStance && IsSpellReady("Shield Bash") && targetedEnemy.DistanceSquaredToPlayer < 64)
+                        return CastAtTarget("Shield Bash");
                 }
                 if (!targetedEnemy.IsInMeleeRange && targetedEnemy.IsMoving && targetedEnemy.HealthPercent < 15)
                 {
@@ -178,8 +184,10 @@ namespace CombatClasses
                     if (IsSpellReady("Overpower"))
                         return CastAtTarget("Overpower");
                 }
+                if (IsSpellReady("Raging Blow"))
+                    return CastAtTarget("Raging Blow");
                 if (IsSpellReady("Victory Rush"))
-                    return CastAtPlayer("Victory Rush");
+                    return CastAtTarget("Victory Rush");
                 if ((targetedEnemy.HealthPercent > 30 || targetedEnemy.IsPlayer || targetedEnemy.IsElite) && IsSpellReady("Rend") && !targetedEnemy.HasDeBuff("Rend"))
                     return CastAtTarget("Rend");
                 if (player.HasBuff("Sudden Death") && IsSpellReady("Execute"))
@@ -190,6 +198,8 @@ namespace CombatClasses
                     return CastAtTarget("Overpower");
                 if (IsSpellReady("Mortal Strike"))
                     return CastAtTarget("Mortal Strike");
+                if (IsSpellReady("Quick Strike"))
+                    return CastAtTarget("Quick Strike");
                 if (!player.IsMoving && player.Power >= 30 && IsSpellReadyOrCasting("Slam"))
                     return CastAtTarget("Slam");
                 if (player.Level <= 40 && (player.Form == ShapeshiftForm.BattleStance || player.Form == ShapeshiftForm.DefensiveStance) && IsSpellReady("Thunder Clap"))
