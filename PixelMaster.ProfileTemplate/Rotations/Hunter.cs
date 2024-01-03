@@ -147,7 +147,7 @@ namespace CombatClasses
             if (IsClassicEra && IsSpellReady("Heart of the Lion") && !player.HasBuff("Heart of the Lion"))
                 return CastAtPlayer("Heart of the Lion");
             //AoE handling
-            var minRange = IsClassicEra ? 8f : 5f;
+            var minRange = IsClassicEra ? 8.5f : 5.5f;
             if (inCombatEnemies.Count > 1)
             {
                 var ccCandidates = inCombatEnemies.Where(e => e.DistanceSquaredToPlayer > 64 && e.HealthPercent > 25 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
@@ -190,10 +190,10 @@ namespace CombatClasses
             //Targeted enemy
             if (targetedEnemy != null)
             {
-                if (targetedEnemy.IsMoving && !targetedEnemy.HasDeBuff("Wing Clip") && IsSpellReady("Concussive Shot") && targetedEnemy.IsInCombatWithPlayer)
-                    return CastAtTarget("Concussive Shot");
-                if (targetedEnemy.DistanceSquaredToPlayer >= minRange * minRange)
+                if (targetedEnemy.DistanceSquaredToPlayer > minRange * minRange)
                 {
+                    if (targetedEnemy.IsMoving && !targetedEnemy.HasDeBuff("Wing Clip") && IsSpellReady("Concussive Shot") && targetedEnemy.IsInCombatWithPlayer)
+                        return CastAtTarget("Concussive Shot");
                     if (IsSpellReady("Hunter's Mark") && !targetedEnemy.HasDeBuff("Hunter's Mark"))
                         return CastAtTarget("Hunter's Mark");
                     if (targetedEnemy.HealthPercent <= 20)
