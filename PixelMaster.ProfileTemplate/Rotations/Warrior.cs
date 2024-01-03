@@ -192,7 +192,7 @@ namespace CombatClasses
                     return CastAtTarget("Rend");
                 if (player.HasBuff("Sudden Death") && IsSpellReady("Execute"))
                     return CastAtTarget("Execute");
-                if ((targetedEnemy.IsPlayer || targetedEnemy.IsElite || targetedEnemy.MaxHealth > player.MaxHealth) && IsSpellReady("Sunder Armor") && targetedEnemy.AuraStacks("Sunder Armor") < 5)
+                if ((targetedEnemy.IsPlayer || targetedEnemy.IsElite || targetedEnemy.MaxHealth > player.MaxHealth) && IsSpellReady("Sunder Armor") && (targetedEnemy.AuraStacks("Sunder Armor") < 5 || targetedEnemy.AuraRemainingTime("Sunder Armor", true) < TimeSpan.FromSeconds(5)))
                     return CastAtTarget("Sunder Armor");
                 if (IsSpellReady("Overpower"))
                     return CastAtTarget("Overpower");
