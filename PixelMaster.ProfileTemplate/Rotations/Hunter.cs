@@ -36,7 +36,7 @@ namespace CombatClasses
             var sb = player.SpellBook;
             var pet = om.PlayerPet;
             var targetedEnemy = om.AnyEnemy;
-            var mainHand = inv.GetEquippedItemsBySlot(EquipSlot.MainHand);
+
             if (targetedEnemy != null)
             {
                 if (IsSpellReady("Hunter's Mark") && !targetedEnemy.HasDeBuff("Hunter's Mark"))
@@ -73,8 +73,6 @@ namespace CombatClasses
                 if (healingPot != null)
                     return UseItem(healingPot);
             }
-            if (pet != null && !pet.IsDead && IsSpellReadyOrCasting("Mend Pet") && (pet.HealthPercent <= 70 || IsSpellCasting("Mend Pet")) && (IsClassicEra || !pet.HasBuff("Mend Pet")))
-                return CastAtPet("Mend Pet");
             if (player.IsFleeingFromTheFight)
             {
                 if (IsSpellReady("Feign Death"))
@@ -105,25 +103,41 @@ namespace CombatClasses
                     return CastAtPlayer("Rapid Fire");
             }
             inCombatEnemies = om.InCombatEnemies;
+            var mendPetAt = !IsClassicEra || inCombatEnemies.Count > 1 ? 70 : 50;
+            if (pet != null && !pet.IsDead && (!IsClassicEra || !player.IsMoving) && IsSpellReadyOrCasting("Mend Pet") && (pet.HealthPercent <= mendPetAt || IsSpellCasting("Mend Pet")) && (IsClassicEra || !pet.HasBuff("Mend Pet")))
+                return CastAtPet("Mend Pet");
             if (player.HealthPercent < 40)
             {
-                if (inCombatEnemies.Any(e => e.IsInMeleeRange) && IsSpellReady("Aspect of the Monkey") && !player.HasBuff("Aspect of the Monkey"))
+                if (inCombatEnemies.Any(e => e.IsInMeleeRange) && IsSpellReady("Aspect of the Monkey"))
                 {
-                    return CastAtPlayer("Aspect of the Monkey");
+                    if (!player.HasBuff("Aspect of the Monkey"))
+                        return CastAtPlayer("Aspect of the Monkey");
                 }
                 else
                 {
                     if (player.PowerPercent < 40)
                     {
-                        if (IsSpellReady("Aspect of the Viper") && !player.HasBuff("Aspect of the Viper"))
-                            return CastAtPlayer("Aspect of the Viper");
-                        else if (IsSpellReady("Aspect of the Hawk") && !player.HasBuff("Aspect of the Hawk"))
+                        if (IsSpellReady("Aspect of the Viper"))
+                        {
+                            if (!player.HasBuff("Aspect of the Viper"))
+                                return CastAtPlayer("Aspect of the Viper");
+                        }
+                        else if (IsSpellReady("Aspect of the Hawk"))
+                        {
+                            if (!player.HasBuff("Aspect of the Hawk"))
+                                return CastAtPlayer("Aspect of the Hawk");
+                        }
+                    }
+                    else if (IsSpellReady("Aspect of the Hawk"))
+                    {
+                        if (!player.HasBuff("Aspect of the Hawk"))
                             return CastAtPlayer("Aspect of the Hawk");
                     }
-                    else if (IsSpellReady("Aspect of the Hawk") && !player.HasBuff("Aspect of the Hawk"))
-                        return CastAtPlayer("Aspect of the Hawk");
-                    else if (IsSpellReady("Aspect of the Monkey") && !player.HasBuff("Aspect of the Monkey"))
-                        return CastAtPlayer("Aspect of the Monkey");
+                    else if (IsSpellReady("Aspect of the Monkey"))
+                    {
+                        if (!player.HasBuff("Aspect of the Monkey"))
+                            return CastAtPlayer("Aspect of the Monkey");
+                    }
                 }
             }
             else
@@ -134,14 +148,21 @@ namespace CombatClasses
                     return CastAtPlayer("Aspect of the Monkey");
                 else if (player.PowerPercent < 40)
                 {
-                    if (IsSpellReady("Aspect of the Viper") && !player.HasBuff("Aspect of the Viper"))
-                        return CastAtPlayer("Aspect of the Viper");
-                    else if (IsSpellReady("Aspect of the Hawk") && !player.HasBuff("Aspect of the Hawk"))
-                        return CastAtPlayer("Aspect of the Hawk");
+                    if (IsSpellReady("Aspect of the Viper"))
+                    {
+                        if (!player.HasBuff("Aspect of the Viper"))
+                            return CastAtPlayer("Aspect of the Viper");
+                    }
+                    else if (IsSpellReady("Aspect of the Hawk"))
+                    {
+                        if (!player.HasBuff("Aspect of the Hawk"))
+                            return CastAtPlayer("Aspect of the Hawk");
+                    }
                 }
-                else if (IsSpellReady("Aspect of the Hawk") && !player.HasBuff("Aspect of the Hawk"))
+                else if (IsSpellReady("Aspect of the Hawk"))
                 {
-                    return CastAtPlayer("Aspect of the Hawk");
+                    if (!player.HasBuff("Aspect of the Hawk"))
+                        return CastAtPlayer("Aspect of the Hawk");
                 }
             }
             if (IsClassicEra && IsSpellReady("Heart of the Lion") && !player.HasBuff("Heart of the Lion"))
@@ -207,7 +228,7 @@ namespace CombatClasses
                     {
                         if (targetedEnemy.HealthPercent > 30 && IsSpellReady("Serpent Sting") && !targetedEnemy.HasDeBuff("Serpent Sting"))
                             return CastAtTarget("Serpent Sting");
-                        if(IsSpellReady("Chimera Shot") && (targetedEnemy.HasDeBuff("Serpent Sting") || targetedEnemy.HasDeBuff("Scorpid Sting") || targetedEnemy.HasDeBuff("Viper Sting")))
+                        if (IsSpellReady("Chimera Shot") && (targetedEnemy.HasDeBuff("Serpent Sting") || targetedEnemy.HasDeBuff("Scorpid Sting") || targetedEnemy.HasDeBuff("Viper Sting")))
                             return CastAtTarget("Chimera Shot");
                     }
                     else if (player.Level < 50 && player.PowerPercent > 50 && targetedEnemy.HealthPercent > 60
