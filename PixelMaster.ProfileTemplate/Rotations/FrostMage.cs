@@ -179,7 +179,7 @@ namespace CombatClasses
                     if (player.IsMoving && IsSpellReady("Fire Blast"))
                         return CastAtTarget("Fire Blast");
                 }
-                if (targetedEnemy.HasDeBuff("Frost Bite") || targetedEnemy.HasDeBuff("Frost Nova") || player.HasBuff("Fingers of Frost"))
+                if (targetedEnemy.HasDeBuff("Frostbite") || targetedEnemy.HasDeBuff("Frost Nova") || player.HasBuff("Fingers of Frost"))
                 {
                     if (IsSpellReady("Deep Freeze"))
                         return CastAtTarget("Deep Freeze");
@@ -210,7 +210,9 @@ namespace CombatClasses
                             return CastAtPlayerLocation("Frost Nova");
                     }
                 }
-                if (IsSpellReadyOrCasting("Frostbolt") && !IsSpellCasting("Fireball"))
+                if (IsSpellReady("Living Flame"))
+                    return CastAtTarget("Living Flame");
+                else if (IsSpellReadyOrCasting("Frostbolt") && !IsSpellCasting("Fireball"))
                     return CastAtTarget("Frostbolt");
                 else if (IsSpellReadyOrCasting("Fireball"))
                     return CastAtTarget("Fireball");

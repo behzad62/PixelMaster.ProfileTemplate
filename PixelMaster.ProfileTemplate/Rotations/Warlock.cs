@@ -141,7 +141,7 @@ namespace CombatClasses
                 if (targetedEnemy != null && targetedEnemy.GetNearbyInCombatEnemies(6).Count > 0 && IsSpellReadyOrCasting("Shadow Cleave"))
                     return CastAtTarget("Shadow Cleave");
             }
-            if (player.HealthPercent > 40 && player.PowerPercent <= 15 && IsSpellReady("Life Tap"))
+            if (player.HealthPercent > 30 && player.PowerPercent <= 25 && IsSpellReady("Life Tap"))
                 return CastAtPlayerLocation("Life Tap", isHarmfulSpell:false);
             if (pet != null && !pet.IsDead && !inCombatEnemies.Any(e => e.IsTargetingPlayer) && (pet.HealthPercent < 50 || IsSpellCasting("Health Funnel")) && IsSpellReadyOrCasting("Health Funnel"))
                 return CastAtPet("Health Funnel");
@@ -172,7 +172,7 @@ namespace CombatClasses
                     return CastAtTarget("Immolate");
                 if (!targetedEnemy.HasDeBuff("Siphon Life") && IsSpellReady("Siphon Life"))
                     return CastAtTarget("Siphon Life");
-                if(player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 65 && IsSpellCasting("Drain Life")) && IsSpellReadyOrCasting("Drain Life"))
+                if(player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 70) && IsSpellReadyOrCasting("Drain Life"))
                     return CastAtTarget("Drain Life");
                 if (IsSpellReadyOrCasting("Chaos Bolt"))
                     return CastAtTarget("Chaos Bolt");
@@ -181,7 +181,7 @@ namespace CombatClasses
 
                 if (IsSpellReadyOrCasting("Shadow Bolt"))
                     return CastAtTarget("Shadow Bolt");
-                else if (IsSpellReady("Shoot"))
+                else if (IsSpellReadyOrCasting("Shoot"))
                     return CastAtTarget("Shoot");
                 return CastAtTarget(sb.AutoAttack);
             }
