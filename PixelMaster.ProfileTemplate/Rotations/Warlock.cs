@@ -109,7 +109,7 @@ namespace CombatClasses
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
                 if (nearbyEnemies.Count > 1)
                 {
-                    if (IsSpellReady("Howl of Terror"))
+                    if (IsSpellReadyOrCasting("Howl of Terror"))
                         return CastAtPlayerLocation("Howl of Terror");
                 }
                 if (inCombatEnemies.Count > 2)
