@@ -36,6 +36,9 @@
     <Reference Include="PixelMaster.Core">
       <HintPath>..\Dependencies\PixelMaster.Core.dll</HintPath>
     </Reference>
+    <Reference Include="PixelMaster.Server.Shared">
+      <HintPath>..\Dependencies\PixelMaster.Server.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="PixelMaster.Services">
       <HintPath>..\Dependencies\PixelMaster.Services.dll</HintPath>
     </Reference>

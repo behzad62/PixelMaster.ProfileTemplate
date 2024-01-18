@@ -161,7 +161,7 @@ namespace CombatClasses
                     if (IsSpellReady("Death Coil") && !targetedEnemy.HasBuff("Death Coil"))
                         return CastAtTarget("Death Coil");
                 }
-              
+                
                 if (!targetedEnemy.HasDeBuff("Haunt") && IsSpellReady("Haunt"))
                     return CastAtTarget("Haunt");
                 if (!targetedEnemy.HasDeBuff("Curse of Agony") && IsSpellReady("Curse of Agony"))

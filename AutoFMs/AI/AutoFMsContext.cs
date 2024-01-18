@@ -12,12 +12,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PixelMaster.Core.Wow;
+using System.Windows;
+using PixelMaster.Server.Shared;
 
 namespace Plugins.Plugins.AI
 {
-    /// <summary>
-    /// This is the class that defines this plugin behavior. Like any custom behavior it derives from the 'BaseContext' class. 
-    /// </summary>
     public class AutoFMsBehavior : BaseContext
     {
         public AutoFMsBehavior() : base()
@@ -28,9 +27,11 @@ namespace Plugins.Plugins.AI
         private readonly PlayerUnit Me = ObjectManager.Instance.Player;
         private bool didOnStart = false;
         private Status mainStatus = Status.Invalid;
-
-        //This part can be used in all plugins as it is.
-        #region Fixed
+        void OnStart()
+        {
+            ConsoleInfo("Started!");
+            didOnStart = true;
+        }
         public override async Task CancelTask()
         {
             if (isCanceling || disposed)
@@ -100,14 +101,6 @@ namespace Plugins.Plugins.AI
                 taskTracker.UnTrackTask();
             }
         }
-        #endregion
-        //---------------------------------------------
-        void OnStart()
-        {
-            ConsoleInfo("Started!");
-            didOnStart = true;
-        }
-        //This methods runs the behavior of this plugin until it is finished or paused.
         private async Task<bool> MainRoutine()
         {
             if (!didOnStart)
@@ -169,25 +162,34 @@ namespace Plugins.Plugins.AI
         {
             if (!ObjectManager.Instance.IsMemoryDataAvailable)
                 return false;
-            var wantedObjects = ObjectManager.Instance.GetVisibleUnits().Where(o => o.IsFlightMaster);
-            var playerFaction = ObjectManager.Instance.Player.PlayerFaction;
-            foreach (var npc in wantedObjects)
-            {
-                if (!npc.Faction.IsEnemyWith(playerFaction) && !TaxiSaver.Instance.IsFlightMasterLearned(npc.Id) && !npcBlackLister.IsBlackListed(npc.WowGuid))
-                {
-                    return true;
-                }
-
-            }
-            return false;
+            return ObjectManager.Instance.GetVisibleUnits().Any(IsValidFlightMaster);
         }
         private WowUnit? GetNearbyFlightMaster()
         {
             if (!ObjectManager.Instance.IsMemoryDataAvailable)
                 return null;
-            var playerFaction = ObjectManager.Instance.Player.PlayerFaction;
-            return ObjectManager.Instance.GetVisibleUnits().FirstOrDefault(o => o.IsFlightMaster && !o.Faction.IsEnemyWith(playerFaction) && !npcBlackLister.IsBlackListed(o.WowGuid));
 
+            return ObjectManager.Instance.GetVisibleUnits().FirstOrDefault(IsValidFlightMaster);
+
+        }
+        private bool IsValidFlightMaster(WowUnit flightMaster)
+        {
+            return flightMaster.IsFlightMaster
+                && FlightMasterMatchPlayerFaction(flightMaster)
+                && !TaxiSaver.Instance.IsFlightMasterLearned(flightMaster.Id)
+                && !npcBlackLister.IsBlackListed(flightMaster.WowGuid);
+        }
+        private bool FlightMasterMatchPlayerFaction(WowUnit flightMaster)
+        {
+            var playerFaction = ObjectManager.Instance.Player.PlayerFaction;
+            if (playerFaction == PlayerFactions.Alliance)
+                return !flightMaster.Faction.IsEnemyWith(playerFaction)
+                && flightMaster.Faction.FactionId != 992; //Dark portal defender, Horde
+            else if (playerFaction == PlayerFactions.Horde)
+                return !flightMaster.Faction.IsEnemyWith(playerFaction)
+                      && flightMaster.Faction.FactionId != 991; //Dark portal defender, Alliance
+            else
+                return !flightMaster.Faction.IsEnemyWith(playerFaction);
         }
         private async Task OpenTaxiMap(IMouseAccessToken accessToken, WowUnit flightMaster, int timeout, CancellationToken cancellationToken)
         {
@@ -209,12 +211,17 @@ namespace Plugins.Plugins.AI
                 }
                 if (ObjectManager.Instance.IsGossipOpen)
                 {
-                    string cmd = "/colorify gossipicon 132057";
-                    await ActionManager.Instance.RunCommand(cmd, cancellationToken).ConfigureAwait(false);
+                    await ActionManager.Instance.AddonInterface.SelectGossipByIcon(132057, cancellationToken).ConfigureAwait(false);
                     await Task.Delay(300, cancellationToken).ConfigureAwait(false);
+                }
+                //Lets check here for the rare case that error msg was set from the before
+                if (!ObjectManager.Instance.IsTaxiMapOpen)
+                {
+                    //Bring it here becuz gossip might not open if no FP is connected to this one.
                     var errorMsg = ObjectManager.Instance.LastErrorMessage;
-                    if (errorMsg != null && errorMsg.Contains("flight locations connected"))
-                        break;
+                    if (errorMsg != null && (errorMsg.Contains("flight locations connected") || errorMsg.Contains("pacified")))
+                        return;
+                    //throw new TimeoutException($"Not any FM is connected to the '{flightMaster.Name}'");
                 }
             }
 
