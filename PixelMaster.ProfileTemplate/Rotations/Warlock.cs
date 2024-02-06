@@ -131,7 +131,7 @@ namespace CombatClasses
                 var multiDotTarget = inCombatEnemies.FirstOrDefault(e => e.HealthPercent > 20 && !e.HasDeBuff("Banish"));
                 if (multiDotTarget != null)
                 {
-                    if (!multiDotTarget.HasDeBuff("Haunt") && IsSpellReady("Haunt"))
+                    if (!multiDotTarget.HasDeBuff("Haunt") && IsSpellReadyOrCasting("Haunt"))
                         return CastAtUnit(multiDotTarget, "Haunt");
                     if (!multiDotTarget.HasDeBuff("Curse of Agony") && IsSpellReady("Curse of Agony"))
                         return CastAtUnit(multiDotTarget, "Curse of Agony");
@@ -142,7 +142,7 @@ namespace CombatClasses
                     return CastAtTarget("Shadow Cleave");
             }
             if (player.HealthPercent > 30 && player.PowerPercent <= 25 && IsSpellReady("Life Tap"))
-                return CastAtPlayerLocation("Life Tap", isHarmfulSpell:false);
+                return CastAtPlayerLocation("Life Tap", isHarmfulSpell: false);
             if (pet != null && !pet.IsDead && !inCombatEnemies.Any(e => e.IsTargetingPlayer) && (pet.HealthPercent < 50 || IsSpellCasting("Health Funnel")) && IsSpellReadyOrCasting("Health Funnel"))
                 return CastAtPet("Health Funnel");
             //Targeted enemy
@@ -161,8 +161,8 @@ namespace CombatClasses
                     if (IsSpellReady("Death Coil") && !targetedEnemy.HasBuff("Death Coil"))
                         return CastAtTarget("Death Coil");
                 }
-                
-                if (!targetedEnemy.HasDeBuff("Haunt") && IsSpellReady("Haunt"))
+
+                if (!targetedEnemy.HasDeBuff("Haunt") && IsSpellReadyOrCasting("Haunt"))
                     return CastAtTarget("Haunt");
                 if (!targetedEnemy.HasDeBuff("Curse of Agony") && IsSpellReady("Curse of Agony"))
                     return CastAtTarget("Curse of Agony");
@@ -172,7 +172,7 @@ namespace CombatClasses
                     return CastAtTarget("Immolate");
                 if (!targetedEnemy.HasDeBuff("Siphon Life") && IsSpellReady("Siphon Life"))
                     return CastAtTarget("Siphon Life");
-                if(player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 70) && IsSpellReadyOrCasting("Drain Life"))
+                if (player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 70) && IsSpellReadyOrCasting("Drain Life"))
                     return CastAtTarget("Drain Life");
                 if (IsSpellReadyOrCasting("Chaos Bolt"))
                     return CastAtTarget("Chaos Bolt");

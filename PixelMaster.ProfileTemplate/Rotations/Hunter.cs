@@ -50,6 +50,8 @@ namespace CombatClasses
                 return CastAtTarget("Concussive Shot");
             if (IsSpellReady("Serpent Sting"))
                 return CastAtTarget("Serpent Sting");
+            if (IsSpellReady("Auto Shot"))
+                return CastAtTarget("Auto Shot");
             return CastAtTarget(sb.AutoAttack);
         }
 
