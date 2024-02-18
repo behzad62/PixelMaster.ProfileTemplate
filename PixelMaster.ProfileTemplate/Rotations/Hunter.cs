@@ -271,7 +271,7 @@ namespace CombatClasses
                             return CastAtTarget(sb.AutoAttack);
                     }
                 }
-                return CastAtTarget(sb.AutoAttack);
+                return CastAtTarget("Auto Shot");
             }
             return null;
         }
