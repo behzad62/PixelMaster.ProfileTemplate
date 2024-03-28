@@ -86,7 +86,7 @@ namespace CombatClasses
                     return CastAtTarget("Corruption");
                 return null;
             }
-            if (player.PowerPercent < 20)
+            if (player.PowerPercent < 20 && !player.IsCasting)
             {
                 var manaPot = inv.GetManaPotion();
                 if (manaPot != null)
@@ -141,9 +141,9 @@ namespace CombatClasses
                 if (targetedEnemy != null && targetedEnemy.GetNearbyInCombatEnemies(6).Count > 0 && IsSpellReadyOrCasting("Shadow Cleave"))
                     return CastAtTarget("Shadow Cleave");
             }
-            if (player.HealthPercent > 30 && player.PowerPercent <= 25 && IsSpellReady("Life Tap"))
+            if (player.HealthPercent > 30 && player.PowerPercent <= 25 && !player.IsCasting && IsSpellReady("Life Tap"))
                 return CastAtPlayerLocation("Life Tap", isHarmfulSpell: false);
-            if (pet != null && !pet.IsDead && !inCombatEnemies.Any(e => e.IsTargetingPlayer) && (pet.HealthPercent < 50 || IsSpellCasting("Health Funnel")) && IsSpellReadyOrCasting("Health Funnel"))
+            if (pet != null && !pet.IsDead && !inCombatEnemies.Any(e => e.IsTargetingPlayer) && ((pet.HealthPercent < 50 && !player.IsCasting) || pet.HealthPercent < 25 || IsSpellCasting("Health Funnel")) && IsSpellReadyOrCasting("Health Funnel"))
                 return CastAtPet("Health Funnel");
             //Targeted enemy
             if (targetedEnemy != null)
@@ -158,22 +158,21 @@ namespace CombatClasses
                         if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReady("War Stomp"))
                             return CastAtPlayerLocation("War Stomp");
                     }
-                    if (IsSpellReady("Death Coil") && !targetedEnemy.HasBuff("Death Coil"))
+                    if (!player.IsCasting && IsSpellReady("Death Coil") && !targetedEnemy.HasBuff("Death Coil"))
                         return CastAtTarget("Death Coil");
                 }
-
+                if (!targetedEnemy.HasDeBuff("Siphon Life") && IsSpellReady("Siphon Life"))
+                    return CastAtTarget("Siphon Life");
                 if (!targetedEnemy.HasDeBuff("Haunt") && IsSpellReadyOrCasting("Haunt"))
                     return CastAtTarget("Haunt");
                 if (!targetedEnemy.HasDeBuff("Curse of Agony") && IsSpellReady("Curse of Agony"))
                     return CastAtTarget("Curse of Agony");
                 if (targetedEnemy.HealthPercent > 30 && !targetedEnemy.HasDeBuff("Corruption") && IsSpellReadyOrCasting("Corruption"))
                     return CastAtTarget("Corruption");
+                if (player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 70 || IsSpellCasting("Drain Life")) && IsSpellReadyOrCasting("Drain Life"))
+                    return CastAtTarget("Drain Life");
                 if (IsClassicEra && targetedEnemy.HealthPercent > 30 && !targetedEnemy.HasDeBuff("Immolate") && IsSpellReadyOrCasting("Immolate"))
                     return CastAtTarget("Immolate");
-                if (!targetedEnemy.HasDeBuff("Siphon Life") && IsSpellReady("Siphon Life"))
-                    return CastAtTarget("Siphon Life");
-                if (player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 70) && IsSpellReadyOrCasting("Drain Life"))
-                    return CastAtTarget("Drain Life");
                 if (IsSpellReadyOrCasting("Chaos Bolt"))
                     return CastAtTarget("Chaos Bolt");
                 if (IsClassicEra && targetedEnemy.HealthPercent > 30 && !targetedEnemy.HasDeBuff("Incinerate") && IsSpellReadyOrCasting("Incinerate"))

@@ -105,7 +105,7 @@ namespace CombatClasses
                     return CastAtPlayer("Rapid Fire");
             }
             inCombatEnemies = om.InCombatEnemies;
-            var mendPetAt = !IsClassicEra || inCombatEnemies.Count > 1 ? 70 : 50;
+            var mendPetAt = !IsClassicEra || inCombatEnemies.Count(e=>e.HealthPercent > 50) > 1 ? 70 : 40;
             if (pet != null && !pet.IsDead && (!IsClassicEra || !player.IsMoving) && IsSpellReadyOrCasting("Mend Pet") && (pet.HealthPercent <= mendPetAt || IsSpellCasting("Mend Pet")) && (IsClassicEra || !pet.HasBuff("Mend Pet")))
                 return CastAtPet("Mend Pet");
             if (player.HealthPercent < 40)
