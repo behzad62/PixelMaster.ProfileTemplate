@@ -39,13 +39,18 @@ namespace CombatClasses
             var targetedEnemy = om.AnyEnemy;
             //Debugger.Log(1, "","-------------------------distance  ");
             //LogInfo("Casting pulling ability");
-            if (targetedEnemy != null && targetedEnemy.NearbyEnemies.Count == 0)
+            if (targetedEnemy != null)
             {
-                if (IsSpellReady("Flame Shock"))
-                    return CastAtTarget("Flame Shock");
+                if (targetedEnemy.NearbyEnemies.Count == 0)
+                {
+                    if (IsSpellReady("Flame Shock"))
+                        return CastAtTarget("Flame Shock");
+                }
+                if (IsSpellReadyOrCasting("Lightning Bolt"))
+                    return CastAtTarget("Lightning Bolt", 1);
             }
-            else if (IsSpellReadyOrCasting("Lightning Bolt"))
-                    return CastAtTarget("Lightning Bolt",1);
+            else
+                LogInfo("targetedEnemy is null");
             return CastAtTarget(sb.AutoAttack);
         }
 
@@ -171,7 +176,7 @@ namespace CombatClasses
                 }
                 if (IsSpellReady("Earth Shock") && targetedEnemy.HasDeBuff("Stormstrike") && (player.HasBuff("Focused") || player.HasBuff("Elemental Focus")))
                     return CastAtTarget("Earth Shock");
-                if (IsSpellReadyOrCasting("Lightning Bolt") && IsPlayerTargetInSpellRange("Lightning Bolt") &&!targetedEnemy.IsInMeleeRange && targetedEnemy.IsMoving && targetedEnemy.HealthPercent < 15)
+                if (IsSpellReadyOrCasting("Lightning Bolt") && IsPlayerTargetInSpellRange("Lightning Bolt") && (player.Level < 10 || !targetedEnemy.IsInMeleeRange && targetedEnemy.IsMoving && targetedEnemy.HealthPercent < 15))
                     return CastAtTarget("Lightning Bolt");
 
                 if (IsSpellReady("Water Shield") && !player.HasBuff("Water Shield"))
