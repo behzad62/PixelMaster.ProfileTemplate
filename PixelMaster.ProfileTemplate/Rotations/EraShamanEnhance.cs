@@ -65,7 +65,7 @@ namespace CombatClasses
             var comboPoints = player.SecondaryPower;
             var rage = player.PowerPercent;
             //Debugger.Log(1, "","Rage " + rage);
-            List<WowUnit>? inCombatEnemies = null;
+            List<WowUnit> inCombatEnemies = om.InCombatEnemies;
             if (player.HealthPercent < 25)
             {
                 var healthStone = inv.GetHealthstone();
@@ -80,9 +80,11 @@ namespace CombatClasses
                 if (IsSpellReadyOrCasting("Lesser Healing Wave"))
                     return CastAtPlayer("Lesser Healing Wave");
             }
-            if (player.HealthPercent < 55)
+            if (player.HealthPercent < 55 )
             {
-                if (IsSpellReadyOrCasting("Healing Wave"))
+                if((player.PowerPercent > 60|| inCombatEnemies.Count > 1 || IsSpellCasting("Lesser Healing Wave")) && IsSpellReadyOrCasting("Lesser Healing Wave"))
+                    return CastAtPlayer("Lesser Healing Wave");
+                if ((targetedEnemy is null || inCombatEnemies.Count > 1 || targetedEnemy.HealthPercent > 0.8 * player.HealthPercent) && IsSpellReadyOrCasting("Healing Wave"))
                     return CastAtPlayer("Healing Wave");
             }
             if (player.PowerPercent < 20)
@@ -131,7 +133,7 @@ namespace CombatClasses
             }
 
             //AoE handling
-            inCombatEnemies = om.InCombatEnemies;
+
             if (inCombatEnemies.Count > 1)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
@@ -147,7 +149,7 @@ namespace CombatClasses
                         CastAtPlayerLocation("War Stomp");
                     if (IsSpellReadyOrCasting("Magma Totem") && !isMagmaTotemLanded())
                         return CastAtPlayerLocation("Magma Totem");
-                    else if (IsSpellReady("Fire Nova Totem") && !isFireNovaTotemLanded()) 
+                    else if (IsSpellReady("Fire Nova Totem") && !isFireNovaTotemLanded() && !isMagmaTotemLanded()) 
                         return CastAtPlayerLocation("Fire Nova Totem");
                     if (IsSpellReadyOrCasting("Strength of Earth Totem") && !isStrengthofEarthTotemLanded())
                         return CastAtPlayerLocation("Strength of Earth Totem");
@@ -254,11 +256,7 @@ namespace CombatClasses
         }
         private bool isStrengthofEarthTotemLanded()
         {
-            var totensIds = new List<int>() { 8075, 8160, 8161, 10442, 25361 };
-            var mobs = ObjectManager.Instance.GetVisibleUnits().Where(npc => totensIds.Contains(npc.Id) && npc.IsPet).ToList();
-            if (mobs.Count > 0)
-                return true;
-            return false;
+            return ObjectManager.Instance.Player.HasAura("Strength of Earth");
         }
     }
 }
