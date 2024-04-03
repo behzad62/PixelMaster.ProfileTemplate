@@ -82,9 +82,11 @@ namespace CombatClasses
             }
             if (player.HealthPercent < 55 )
             {
-                if((player.PowerPercent > 60|| inCombatEnemies.Count > 1 || IsSpellCasting("Lesser Healing Wave")) && IsSpellReadyOrCasting("Lesser Healing Wave"))
+                if(IsSpellReady("Ancestral Guidance") && inCombatEnemies.Any(e=>e.HasDeBuff("Flame Shock")))
+                    return CastAtPlayer("Ancestral Guidance");
+                if ((player.PowerPercent > 60|| inCombatEnemies.Count > 1 || IsSpellCasting("Lesser Healing Wave")) && IsSpellReadyOrCasting("Lesser Healing Wave"))
                     return CastAtPlayer("Lesser Healing Wave");
-                if ((targetedEnemy is null || inCombatEnemies.Count > 1 || targetedEnemy.HealthPercent > 0.8 * player.HealthPercent) && IsSpellReadyOrCasting("Healing Wave"))
+                if ((targetedEnemy is null || inCombatEnemies.Count > 1 || targetedEnemy.HealthPercent > 0.8 * player.HealthPercent || player.HasAura("Ancestral Guidance")) && IsSpellReadyOrCasting("Healing Wave"))
                     return CastAtPlayer("Healing Wave");
             }
             if (player.PowerPercent < 20)
