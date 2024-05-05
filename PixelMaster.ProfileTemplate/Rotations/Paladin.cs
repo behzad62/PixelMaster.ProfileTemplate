@@ -75,6 +75,11 @@ namespace CombatClasses
             }
             if (player.HealthPercent < 50)
             {
+                if (IsSpellReadyOrCasting("Holy Light"))
+                    return CastAtPlayer("Holy Light");
+            }
+            if (player.HealthPercent < 60)
+            {
                 if (IsSpellReady("Divine Shield") && !player.HasBuff("Divine Shield") && !player.HasDeBuff("Forbearance"))
                     return CastAtPlayer("Divine Shield");
                 if (IsSpellReadyOrCasting("Holy Light"))
@@ -159,7 +164,19 @@ namespace CombatClasses
                     if (IsSpellReady("Blessing of Might") && !player.HasBuff("Blessing of Might"))
                         return CastAtPlayer("Blessing of Might");
                     //Rotation
-                    if (targetedEnemy?.HealthPercent < 20 && IsSpellReady("Hammer of Wrath"))
+                    if (player.HealthPercent < 50)
+                    {
+                        if (IsSpellReadyOrCasting("Holy Light"))
+                            return CastAtPlayer("Holy Light");
+                    }
+                    if (player.HealthPercent < 60)
+                    {
+                        if (IsSpellReady("Divine Shield") && !player.HasBuff("Divine Shield") && !player.HasDeBuff("Forbearance"))
+                            return CastAtPlayer("Divine Shield");
+                        if (IsSpellReadyOrCasting("Holy Light"))
+                            return CastAtPlayer("Holy Light");
+                    }
+                    if (IsSpellReady("Hammer of Wrath") && targetedEnemy.HealthPercent < 20)
                         return CastAtTarget("Hammer of Wrath");
                     if (IsSpellReady("Judgement of Wisdom"))
                         return CastAtTarget("Judgement of Wisdom", facing: SpellFacingFlags.FaceTarget);
@@ -173,7 +190,7 @@ namespace CombatClasses
                         return CastAtTarget("Divine Storm", facing: SpellFacingFlags.FaceTarget);
                     if (IsSpellReady("Exorcism") && player.HasBuff("Art of War"))
                         return CastAtTarget("Exorcism");
-                    if (targetedEnemy != null && StunCandidates.Any() && IsSpellReadyOrCasting("Hammer of Justice") && !inCombatEnemies.Any(e => e.HasDeBuff("Hammer of Justice")))
+                    if (StunCandidates.Any() && IsSpellReadyOrCasting("Hammer of Justice") && !inCombatEnemies.Any(e => e.HasDeBuff("Hammer of Justice") && targetedEnemy != null))
                         return CastAtUnit(StunCandidates.First(), "Hammer of Justice");
                     return CastAtTarget(sb.AutoAttack);
 
@@ -188,7 +205,7 @@ namespace CombatClasses
                         return CastAtTarget("Exorcism");
                 }
             }
-            
+
             //Targeted enemy
             if (targetedEnemy != null)
             {
@@ -196,9 +213,9 @@ namespace CombatClasses
                     return null;
                 if (targetedEnemy.IsCasting)
                 {
-                    if (IsSpellReady("Hammer of Justice") && !targetedEnemy.HasDeBuff("Hammer of Justice"))
+                    if (IsSpellReady("Hammer of Justice") && !targetedEnemy.HasDeBuff("Hammer of Justice") && targetedEnemy != null)
                         return CastAtTarget("Hammer of Justice");
-                    if (player.Race == UnitRace.BloodElf && IsSpellReady("Arcane Torrent"))
+                    if (player.Race == UnitRace.BloodElf && IsSpellReady("Arcane Torrent") && targetedEnemy != null)
                         return CastAtTarget("Arcane Torrent");
                 }
                 if (player.HasBuff("Art of War"))
@@ -206,7 +223,7 @@ namespace CombatClasses
                     if (IsSpellReady("Exorcism"))
                         return CastAtTarget("Exorcism");
                 }
-                if (targetedEnemy.HealthPercent <20)
+                if (targetedEnemy.HealthPercent < 20)
                 {
                     if (IsSpellReady("Hammer of Wrath"))
                         return CastAtTarget("Hammer of Wrath");
@@ -218,7 +235,7 @@ namespace CombatClasses
                     {
                         if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReady("War Stomp"))
                             return CastAtTarget("War Stomp");
-                        if (IsSpellReady("Hammer of Justice") && !targetedEnemy.HasDeBuff("Hammer of Justice"))
+                        if (IsSpellReady("Hammer of Justice") && !targetedEnemy.HasDeBuff("Hammer of Justice") && targetedEnemy != null)
                             return CastAtTarget("Hammer of Justice");
                         if (IsSpellReady("Divine Shield") && !player.HasDeBuff("Forbearance"))
                             return CastAtPlayer("Divine Shield");
@@ -232,6 +249,18 @@ namespace CombatClasses
                 if (IsSpellReady("Blessing of Might") && !player.HasBuff("Blessing of Might"))
                     return CastAtPlayer("Blessing of Might");
                 //Single Target
+                if (player.HealthPercent < 50)
+                {
+                    if (IsSpellReadyOrCasting("Holy Light"))
+                        return CastAtPlayer("Holy Light");
+                }
+                if (player.HealthPercent < 60)
+                {
+                    if (IsSpellReady("Divine Shield") && !player.HasBuff("Divine Shield") && !player.HasDeBuff("Forbearance"))
+                        return CastAtPlayer("Divine Shield");
+                    if (IsSpellReadyOrCasting("Holy Light"))
+                        return CastAtPlayer("Holy Light");
+                }
                 if (IsSpellReady("Hammer of Wrath") && targetedEnemy.HealthPercent < 20)
                     return CastAtTarget("Hammer of Wrath");
                 if (IsSpellReady("Judgement of Wisdom"))
