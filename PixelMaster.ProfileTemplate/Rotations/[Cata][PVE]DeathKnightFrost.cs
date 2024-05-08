@@ -12,22 +12,25 @@ using System.Collections.Generic;
 using System.Numerics;
 using System;
 using System.Linq;
+using AdvancedCombatClasses.Settings;
 
 namespace CombatClasses
 {
     public class DeathKinghtFrost : IPMRotation
     {
-        private const bool UseAntiMagicShell = true;
-        private const bool UseIceboundFortitude = true;
-        private const double IceboundFortitudePercent = 35;
-        private const bool UseLichborne = true;
-        private const double LichbornePercent = 55;
-        private const double DeathStrikeEmergencyPercent = 70;
-        private const int DeathAndDecayCount = 3;
-        private const bool UseRaiseDead = true;
-        private const bool UsePillarOfFrost = true;
-        private const bool UseDeathAndDecay = true;
-        private const bool UseEmpowerRuneWeapon = true;
+        private bool UseAntiMagicShell => settings.UseAntiMagicShell;
+        private bool UseIceboundFortitude => settings.UseIceboundFortitude;
+        private int IceboundFortitudePercent => settings.IceboundFortitudePercent;
+        private bool UseLichborne => settings.UseLichborne;
+        private int LichbornePercent => settings.LichbornePercent;
+        private int DeathStrikeEmergencyPercent => settings.DeathStrikeEmergencyPercent;
+        private int DeathAndDecayCount => settings.DeathAndDecayCount;
+        private bool UseRaiseDead => settings.UseRaiseDead;
+        private bool UsePillarOfFrost => settings.UsePillarOfFrost;
+        private bool UseDeathAndDecay => settings.UseDeathAndDecay;
+        private bool UseEmpowerRuneWeapon => settings.UseEmpowerRuneWeapon;
+
+        private DeathKnightSettings settings => SettingsManager.Instance.DeathKnight;
         public short Spec => 2;
         public UnitClass PlayerClass => UnitClass.DeathKnight;
         // 0 - Melee DPS : Will try to stick to the target
@@ -137,7 +140,7 @@ namespace CombatClasses
                     //if (om.PlayerPet != null && !om.PlayerPet.IsDead && !om.PlayerPet.HasAura("Dark Transformation") && IsSpellReady("Dark Transformation"))
                     //    return CastAtPlayerLocation("Dark Transformation");
 
-                    if (IsSpellReady("Death and Decay"))
+                    if (UseDeathAndDecay && IsSpellReady("Death and Decay"))
                     {
                         var AoELocation = GetBestAoELocation(inCombatEnemies, 10f, out int numEnemiesInAoE);
                         if (numEnemiesInAoE >= DeathAndDecayCount)
@@ -186,7 +189,7 @@ namespace CombatClasses
                     return CastAtTarget("Icy Touch");
                 if (!targetedEnemy.HasDeBuff("Blood Plague") && IsSpellReady("Plague Strike"))
                     return CastAtTarget("Plague Strike");
-                if(!PlayerLearnedSpell("Obliterate") && IsSpellReady("Blood Strike"))
+                if (!PlayerLearnedSpell("Obliterate") && IsSpellReady("Blood Strike"))
                     return CastAtTarget("Blood Strike");
                 if (IsSpellReady("Obliterate"))
                     return CastAtTarget("Obliterate");

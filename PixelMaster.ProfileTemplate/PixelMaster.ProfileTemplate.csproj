@@ -10,6 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="AdvancedCombatClasses">
+      <HintPath>..\Dependencies\AdvancedCombatClasses.dll</HintPath>
+    </Reference>
     <Reference Include="Fluent-Behaviour-Tree-Std">
       <HintPath>..\Dependencies\Fluent-Behaviour-Tree-Std.dll</HintPath>
     </Reference>

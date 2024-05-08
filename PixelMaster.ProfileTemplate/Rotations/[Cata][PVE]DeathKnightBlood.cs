@@ -1,7 +1,7 @@
 ﻿using PixelMaster.Core.API;
 using PixelMaster.Core.Managers;
 using PixelMaster.Core.Wow.Objects;
-
+using AdvancedCombatClasses.Settings;
 using static PixelMaster.Core.API.PMRotationBuilder;
 using PixelMaster.Core.Interfaces;
 using PixelMaster.Core.Profiles;
@@ -17,30 +17,31 @@ namespace CombatClasses
 {
     public class DeathKinghtBlood : IPMRotation
     {
-        private const bool UseAntiMagicShell = true;
-        private const bool UseIceboundFortitude = true;
-        private const bool IceboundFortitudeExclusive = true;
-        private const double IceboundFortitudePercent = 35;
-        private const bool UseLichborne = true;
-        private const bool LichborneExclusive = true;
-        private const double LichbornePercent = 55;
-        private const double DeathStrikeEmergencyPercent = 70;
-        private const bool UsePetSacrifice = true;
-        private const bool PetSacrificeExclusive = true;
-        private const double PetSacrificePercent = 70;
-        private const double PetSacrificeSummonPercent = 70;
-        private const int DeathAndDecayCount = 3;
-        private const bool UseBoneShield = true;
-        private const int BoneShieldPercent = 95;
-        private const bool BoneShieldExclusive = true;
-        private const bool UseDeathAndDecay = true;
-        private const bool UseDancingRuneWeapon = true;
-        private const bool UseVampiricBlood = true;
-        private const bool VampiricBloodExclusive = true;
-        private const int VampiricBloodPercent = 50;
-        private const int EmpowerRuneWeaponPercent = 50;
-        private const bool UseArmyOfTheDead = true;
-        private const int ArmyOfTheDeadPercent = 50;
+        private bool UseAntiMagicShell => settings.UseAntiMagicShell;
+        private bool UseIceboundFortitude => settings.UseIceboundFortitude;
+        private bool IceboundFortitudeExclusive => settings.IceboundFortitudeExclusive;
+        private int IceboundFortitudePercent => settings.IceboundFortitudePercent;
+        private bool UseLichborne => settings.UseLichborne;
+        private bool LichborneExclusive => settings.LichborneExclusive;
+        private int LichbornePercent => settings.LichbornePercent;
+        private int DeathStrikeEmergencyPercent => settings.DeathStrikeEmergencyPercent;
+        private bool UsePetSacrifice => settings.UsePetSacrifice;
+        private bool PetSacrificeExclusive => settings.PetSacrificeExclusive;
+        private int PetSacrificePercent => settings.PetSacrificePercent;
+        private int PetSacrificeSummonPercent => settings.PetSacrificeSummonPercent;
+        private int DeathAndDecayCount => settings.DeathAndDecayCount;
+        private bool UseBoneShield => settings.UseBoneShield;
+        private int BoneShieldPercent => settings.BoneShieldPercent;
+        private bool BoneShieldExclusive => settings.BoneShieldExclusive;
+        private bool UseDeathAndDecay => settings.UseDeathAndDecay;
+        private bool UseDancingRuneWeapon => settings.UseDancingRuneWeapon;
+        private bool UseVampiricBlood => settings.UseVampiricBlood;
+        private bool VampiricBloodExclusive => settings.VampiricBloodExclusive;
+        private int VampiricBloodPercent => settings.VampiricBloodPercent;
+        private int EmpowerRuneWeaponPercent => settings.EmpowerRuneWeaponPercent;
+        private bool UseArmyOfTheDead => settings.UseArmyOfTheDead;
+        private int ArmyOfTheDeadPercent => settings.ArmyOfTheDeadPercent;
+        private DeathKnightSettings settings => SettingsManager.Instance.DeathKnight;
         public short Spec => 1;
         public UnitClass PlayerClass => UnitClass.DeathKnight;
         // 0 - Melee DPS : Will try to stick to the target
