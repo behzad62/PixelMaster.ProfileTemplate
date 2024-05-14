@@ -71,7 +71,7 @@ namespace CombatClasses
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
                 UseAntiMagicShell))
-                CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
             if (!player.HasActivePet && IsSpellReady("Raise Dead"))
                 return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
             if (player.HealthPercent < IceboundFortitudePercent && UseIceboundFortitude && IsSpellReady("Icebound Fortitude"))

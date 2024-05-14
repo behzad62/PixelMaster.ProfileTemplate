@@ -74,7 +74,7 @@ namespace CombatClasses
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
                 UseAntiMagicShell))
-                CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
             //if (!player.HasActivePet && IsSpellReady("Raise Dead"))
             //    return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
             if (player.HealthPercent < IceboundFortitudePercent && UseIceboundFortitude && IsSpellReady("Icebound Fortitude"))
@@ -115,7 +115,7 @@ namespace CombatClasses
 
             //}
             if (UsePillarOfFrost && IsSpellReady("Pillar of Frost"))
-                CastAtPlayer("Pillar of Frost");
+                return CastAtPlayer("Pillar of Frost");
             if (UseRaiseDead && targetedEnemy != null && targetedEnemy.IsElite && !player.HasActivePet && IsSpellReady("Raise Dead") && player.HasAura("Pillar of Frost"))
                 return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
             if (UseEmpowerRuneWeapon && targetedEnemy != null && targetedEnemy.IsElite && player.UnholyRuneCount == 0 && player.FrostRuneCount == 0 && player.DeathRuneCount == 0 && !IsSpellReady("Frost Strike"))

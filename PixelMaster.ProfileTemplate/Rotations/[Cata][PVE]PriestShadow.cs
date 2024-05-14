@@ -16,7 +16,7 @@ using AdvancedCombatClasses.Settings;
 
 namespace CombatClasses
 {
-    public class ShadowPriest : IPMRotation
+    public class PriestShadow : IPMRotation
     {
         private PriestSettings settings => SettingsManager.Instance.Priest;
         public short Spec => 3;

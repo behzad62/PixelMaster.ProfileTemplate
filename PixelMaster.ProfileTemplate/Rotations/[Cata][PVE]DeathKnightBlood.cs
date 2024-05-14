@@ -87,7 +87,7 @@ namespace CombatClasses
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
                 UseAntiMagicShell))
-                CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
             if (player.HealthPercent < PetSacrificePercent && player.HasActivePet && IsSpellReady("Death Pact"))
                 return CastAtPlayer("Death Pact");
             if (player.HealthPercent < 90 && player.HasAura("Will of the Necropolis") && IsSpellReady("Rune Tap"))
@@ -95,32 +95,32 @@ namespace CombatClasses
             if (player.HealthPercent < 70 && player.HasAura("Lichborne") && IsSpellReady("Death Coil"))
                 return CastAtPlayer("Death Coil");
             if (UseDancingRuneWeapon && inCombatEnemies.Count > 2 && IsSpellReady("Dancing Rune Weapon"))
-                CastAtPlayerLocation("Dancing Rune Weapo");
+                return CastAtPlayerLocation("Dancing Rune Weapo");
             if (UseBoneShield
                 && (!BoneShieldExclusive && player.HealthPercent < BoneShieldPercent
                 || (!player.HasAura("Vampiric Blood") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Lichborne") && !player.HasAura("Icebound Fortitude")))
                 && IsSpellReady("Bone Shield"))
-                CastAtPlayerLocation("Bone Shield", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Bone Shield", isHarmfulSpell: false);
             if (UseVampiricBlood && player.HealthPercent < VampiricBloodPercent && (!VampiricBloodExclusive
                 || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Lichborne") && !player.HasAura("Icebound Fortitude")))
                 && IsSpellReady("Vampiric Blood"))
-                CastAtPlayerLocation("Vampiric Blood", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Vampiric Blood", isHarmfulSpell: false);
             if (UseLichborne && player.HealthPercent < LichbornePercent && player.Power >= 600 && (!LichborneExclusive
              || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Vampiric Blood") && !player.HasAura("Icebound Fortitude")))
              && IsSpellReady("Lichborne"))
-                CastAtPlayerLocation("Lichborne", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Lichborne", isHarmfulSpell: false);
             if (UsePetSacrifice && player.HealthPercent < PetSacrificeSummonPercent && (!PetSacrificeExclusive
                  || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Vampiric Blood") && !player.HasAura("Icebound Fortitude") && !player.HasAura("Lichborne")))
                  && IsSpellReady("Raise Dead"))
-                CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
             if (UseIceboundFortitude && player.HealthPercent < IceboundFortitudePercent && player.Power >= 600 && (!IceboundFortitudeExclusive
              || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Vampiric Blood") && !player.HasAura("Lichborne")))
              && IsSpellReady("Icebound Fortitude"))
-                CastAtPlayerLocation("Icebound Fortitude", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Icebound Fortitude", isHarmfulSpell: false);
             if (player.HealthPercent < EmpowerRuneWeaponPercent && !IsSpellReady("Death Strike") && IsSpellReady("Empower Rune Weapon"))
-                CastAtPlayerLocation("Empower Rune Weapon", isHarmfulSpell: false);
+                return CastAtPlayerLocation("Empower Rune Weapon", isHarmfulSpell: false);
             if (player.HealthPercent < ArmyOfTheDeadPercent && UseArmyOfTheDead && IsSpellReady("Army of the Dead"))
-                CastAtPlayerLocation("Army of the Dead", isHarmfulSpell: true);
+                return CastAtPlayerLocation("Army of the Dead", isHarmfulSpell: true);
 
             if (player.HealthPercent < 45)
             {
