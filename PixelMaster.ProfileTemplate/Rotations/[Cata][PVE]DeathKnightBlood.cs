@@ -48,7 +48,7 @@ namespace CombatClasses
         // 1 - Range: Will try to kite target if it got too close.
         // 2 - Healer: Will try to target party/raid members and get in range to heal them
         // 3 - Tank: Will try to engage nearby enemies who targeting alies
-        public CombatRole Role => CombatRole.MeleeDPS;
+        public CombatRole Role => CombatRole.Tank;
         public string Name => "[Cata][PvE]DeathKnight-Blood ";
         public string Author => "PixelMaster";
         public string Description => "General PvE";
@@ -80,7 +80,7 @@ namespace CombatClasses
             var sb = player.SpellBook;
             var inv = player.Inventory;
             var comboPoints = player.SecondaryPower;
-            List<WowUnit>? inCombatEnemies = inCombatEnemies = om.InCombatEnemies;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
 
             if (!player.HasAura("Blood Presence") && IsSpellReady("Blood Presence"))
                 return CastAtPlayer("Blood Presence");

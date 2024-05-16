@@ -66,7 +66,7 @@ namespace CombatClasses
             var sb = player.SpellBook;
             var inv = player.Inventory;
             var comboPoints = player.SecondaryPower;
-            List<WowUnit>? inCombatEnemies = inCombatEnemies = om.InCombatEnemies;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
 
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
