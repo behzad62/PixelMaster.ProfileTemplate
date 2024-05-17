@@ -217,7 +217,7 @@ namespace CombatClasses
                 if (inCombatEnemies.Count > 1)
                 {
                     if (IsSpellReadyOrCasting("War Stomp") && !player.IsMoving && player.Race == UnitRace.Tauren)
-                        CastAtPlayerLocation("War Stomp");
+                        return CastAtPlayerLocation("War Stomp");
                     var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 25);
                     if (nearbyEnemies.Count > 1)
                     {
@@ -235,7 +235,7 @@ namespace CombatClasses
                         return CastAtPlayerLocation("Demoralizing Roar");
 
                     if (IsSpellReadyOrCasting("War Stomp") && !player.IsMoving && player.Race == UnitRace.Tauren && player.HealthPercent < 50)
-                        CastAtPlayerLocation("War Stomp");
+                        return CastAtPlayerLocation("War Stomp");
 
                     if (IsSpellReady("Dire Bear Form") && !DireBearForm())
                         return CastAtPlayer("Dire Bear Form");

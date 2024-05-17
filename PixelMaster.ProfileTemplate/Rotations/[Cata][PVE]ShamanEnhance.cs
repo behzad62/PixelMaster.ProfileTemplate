@@ -164,6 +164,7 @@ namespace CombatClasses
                     return CastAtTarget("Lightning Bolt");
                 if (IsSpellReady("Unleash Elements"))
                     return CastAtTarget("Unleash Elements");
+                return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }
