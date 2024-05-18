@@ -37,12 +37,12 @@ namespace CombatClasses
             var sb = player.SpellBook;
             var targetedEnemy = om.AnyEnemy;
 
-            if (player.AuraStacks("Lightning Shield", true) < 2 && IsSpellReady("Lightning Shield"))
-                return CastAtPlayerLocation("Lightning Shield", isHarmfulSpell: false);
             if (targetedEnemy != null)
             {
                 if(player.Level < 20)
                 {
+                    if (IsSpellReady("Feral Charge", "Bear Form"))
+                        return CastAtTarget("Feral Charge", "Bear Form");
                     if (IsSpellReady("Moonfire"))
                         return CastAtTarget("Moonfire");
                     if (IsSpellReadyOrCasting("Wrath"))
@@ -66,14 +66,14 @@ namespace CombatClasses
 
                 if (player.Form != ShapeshiftForm.Cat && IsSpellReady("Cat Form"))
                     return CastAtPlayerLocation("Cat Form", isHarmfulSpell: false);
-                if (!player.IsStealthed && IsSpellReady("Prowl") && targetedEnemy.DistanceSquaredToPlayer < 30 * 30)
-                    return CastAtPlayerLocation("Prowl", isHarmfulSpell: false);
-                if (IsSpellReady("Feral Charge (Cat)"))
-                    return CastAtTarget("Feral Charge (Cat)");
-                if(targetedEnemy.DistanceSquaredToPlayer > 8 * 8 && !player.HasAura("Stampeding Roar") && !IsSpellReady("Feral Charge (Cat)") && IsSpellReady("Dash"))
-                    return CastAtPlayerLocation("Dash", isHarmfulSpell: false);
-                if (targetedEnemy.DistanceSquaredToPlayer > 8 * 8 && !player.HasAura("Stampeding Roar") && IsSpellReady("Feral Charge (Cat)") && !IsSpellReady("Dash"))
-                    return CastAtPlayerLocation("Stampeding Roar(Cat Form)", isHarmfulSpell: false);
+                if (!player.IsStealthed && IsSpellReady("Prowl", "Cat Form") && targetedEnemy.DistanceSquaredToPlayer < 30 * 30)
+                    return CastAtPlayerLocation("Prowl", "Cat Form", isHarmfulSpell: false);
+                if (IsSpellReady("Feral Charge", "Cat Form"))
+                    return CastAtTarget("Feral Charge", "Cat Form");
+                if(targetedEnemy.DistanceSquaredToPlayer > 8 * 8 && !player.HasAura("Stampeding Roar") && !IsSpellReady("Feral Charge", "Cat Form") && IsSpellReady("Dash", "Cat Form"))
+                    return CastAtPlayerLocation("Dash", "Cat Form", isHarmfulSpell: false);
+                if (targetedEnemy.DistanceSquaredToPlayer > 8 * 8 && IsSpellReady("Stampeding Roar", "Cat Form") && !IsSpellReady("Feral Charge", "Cat Form") && !IsSpellReady("Dash") && !player.HasAura("Dash"))
+                    return CastAtPlayerLocation("Stampeding Roar", "Cat Form", isHarmfulSpell: false);
             }
             return CastAtTarget(sb.AutoAttack);
         }
@@ -120,8 +120,8 @@ namespace CombatClasses
             {
                 if (IsSpellReady("Nature's Grasp") && !player.HasAura("Nature's Grasp", true))
                     return CastAtPlayerLocation("Nature's Grasp");
-                if (IsSpellReady("Dash"))
-                    return CastAtPlayerLocation("Dash");
+                if (IsSpellReady("Dash", "Cat Form"))
+                    return CastAtPlayerLocation("Dash", "Cat Form");
                 return null;
             }
             //Burst
@@ -136,22 +136,24 @@ namespace CombatClasses
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
                 if (nearbyEnemies.Count >= 3)
                 {
-                    if (targetedEnemy != null && (player.SecondaryPower == 5 || player.SecondaryPower >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite"))
-                        return CastAtTarget("Ferocious Bite");
-                    if (IsSpellReady("Swipe (Cat)"))
-                        return CastAtPlayerLocation("Swipe (Cat)", isHarmfulSpell: true);
-                    if (targetedEnemy != null && IsSpellReady("Mangle"))
-                        return CastAtTarget("Mangle");
+                    if(IsSpellReady("Berserk"))
+                        return CastAtPlayerLocation("Berserk", isHarmfulSpell: false);
+                    if (targetedEnemy != null && (player.ComboPoints == 5 || player.ComboPoints >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite", "Cat Form"))
+                        return CastAtTarget("Ferocious Bite", "Cat Form");
+                    if (IsSpellReady("Swipe", "Cat Form"))
+                        return CastAtPlayerLocation("Swipe", "Cat Form", isHarmfulSpell: true);
+                    if (targetedEnemy != null && IsSpellReady("Mangle", "Cat Form"))
+                        return CastAtTarget("Mangle", "Cat Form");
                     if (player.HealthPercent < 50)
                     {
                         if (IsSpellReady("Dire Bear Form") && player.Form != ShapeshiftForm.DireBearForm)
                             return CastAtPlayer("Dire Bear Form");
                         if (IsSpellReady("Bear Form") && player.Form != ShapeshiftForm.BearForm && player.Form != ShapeshiftForm.DireBearForm)
                             return CastAtPlayer("Bear Form");
-                        if (IsSpellReady("Demoralizing Roar") && nearbyEnemies.Any(e => !e.HasDeBuff("Demoralizing Roar")))
-                            return CastAtPlayerLocation("Demoralizing Roar");
-                        if (IsSpellReady("Swipe (Bear)"))
-                            return CastAtPlayerLocation("Swipe (Bear)", isHarmfulSpell: true);
+                        if (IsSpellReady("Demoralizing Roar", "Bear Form") && nearbyEnemies.Any(e => !e.HasDeBuff("Demoralizing Roar")))
+                            return CastAtPlayerLocation("Demoralizing Roar", "Bear Form");
+                        if (IsSpellReady("Swipe", "Bear Form"))
+                            return CastAtPlayerLocation("Swipe", "Bear Form", isHarmfulSpell: true);
                     }
                 }
             }
@@ -161,57 +163,67 @@ namespace CombatClasses
             {
                 if (targetedEnemy.IsCasting && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
                 {
-                    if (IsSpellReady("Bash"))
-                        return CastAtTarget("Bash");
-                    if (player.Form == ShapeshiftForm.Cat && IsSpellReady("Skull Bash (Cat)"))
-                        return CastAtTarget("Skull Bash (Cat)");
-                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Skull Bash (Bear)"))
-                        return CastAtTarget("Skull Bash (Bear)");
+                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Bash", "Bear Form"))
+                        return CastAtTarget("Bash", "Bear Form");
+                    if (player.Form == ShapeshiftForm.Cat && IsSpellReady("Skull Bash", "Cat Form"))
+                        return CastAtTarget("Skull Bash", "Cat Form");
+                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Skull Bash", "Bear Form"))
+                        return CastAtTarget("Skull Bash", "Bear Form");
                     if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
                         return CastAtPlayerLocation("War Stomp");
                 }
 
                 if (player.Level < 20)
                 {
-                    if ((player.SecondaryPower == 5 || player.SecondaryPower >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite"))
-                        return CastAtTarget("Ferocious Bite");
-                    if (targetedEnemy.IsElite && IsSpellReady("Rake"))
-                        return CastAtTarget("Rake");
-                    if (IsSpellReady("Mangle"))
-                        return CastAtTarget("Mangle");
+                    if ((player.ComboPoints == 5 || player.ComboPoints >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite", "Cat Form"))
+                        return CastAtTarget("Ferocious Bite", "Cat Form");
+                    if (targetedEnemy.IsElite && IsSpellReady("Rake", "Cat Form"))
+                        return CastAtTarget("Rake", "Cat Form");
+                    if (IsSpellReady("Mangle", "Bear Form"))
+                        return CastAtTarget("Mangle", "Bear Form");
                 }
                 else if (player.Level < 46) 
                 {
-                    if ((player.SecondaryPower == 5 || player.SecondaryPower >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite"))
-                        return CastAtTarget("Ferocious Bite");
-                    if(player.HasAura("Stampede") && IsSpellReady("Ravage!"))
-                        return CastAtTarget("Ravage!");
-                    if (targetedEnemy.IsElite && IsSpellReady("Rake"))
-                        return CastAtTarget("Rake");
-                    if (IsSpellReady("Mangle"))
-                        return CastAtTarget("Mangle");
+                    if ((player.ComboPoints == 5 || player.ComboPoints >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite", "Cat Form"))
+                        return CastAtTarget("Ferocious Bite" , "Cat Form");
+                    if(player.HasAura("Stampede") && IsSpellReady("Ravage", "Cat Form"))
+                        return CastAtTarget("Ravage", "Cat Form");
+                    if (targetedEnemy.IsElite && IsSpellReady("Rake", "Cat Form"))
+                        return CastAtTarget("Rake", "Cat Form");
+                    if (IsSpellReady("Mangle", "Cat Form"))
+                        return CastAtTarget("Mangle", "Cat Form");
                 }
 
-                if (!player.HasAura("Tiger's Fury") && IsSpellReady("Tiger's Fury"))
-                    return CastAtPlayerLocation("Tiger's Fury", isHarmfulSpell: false);
-                if ((player.SecondaryPower == 5 || player.SecondaryPower >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite"))
-                    return CastAtTarget("Ferocious Bite");
-                if(!targetedEnemy.IsTargetingPlayer && IsSpellReady("Shred"))
-                    return CastAtTarget("Shred", facing: SpellFacingFlags.BehindAndFaceTarget);
-                if (player.HasAura("Stampede") && IsSpellReady("Ravage!"))
-                    return CastAtTarget("Ravage!");
-                if (targetedEnemy.IsElite && IsSpellReady("Rake"))
-                    return CastAtTarget("Rake");
-                if (targetedEnemy.IsPositionBehind(player.Position) && IsSpellReady("Mangle"))
-                    return CastAtTarget("Mangle");
+                if (!player.HasAura("Tiger's Fury") && IsSpellReady("Tiger's Fury", "Cat Form") && player.Energy <= 40)
+                    return CastAtPlayerLocation("Tiger's Fury", "Cat Form", isHarmfulSpell: false);
+
+                if (targetedEnemy.IsElite)
+                {
+                    if (player.Energy >= 90 && IsSpellReady("Berserk"))
+                        return CastAtPlayerLocation("Berserk", isHarmfulSpell: false);
+                    if (!targetedEnemy.HasAura("Mangle", true) && IsSpellReady("Mangle", "Cat Form"))
+                        return CastAtTarget("Mangle", "Cat Form");
+                    if (player.ComboPoints == 5 && IsSpellReady("Rip", "Cat Form") && !targetedEnemy.HasAura("Rip", true))
+                        return CastAtTarget("Rip", "Cat Form");
+                    if (player.ComboPoints == 5 && IsSpellReady("Savage Roar", "Cat Form") && !player.HasAura("Savage Roar", true))
+                        return CastAtPlayerLocation("Savage Roar", "Cat Form", isHarmfulSpell:false);
+                    if (IsSpellReady("Rake", "Cat Form") && !targetedEnemy.HasAura("Rake", true))
+                        return CastAtTarget("Rake", "Cat Form");
+                }
+
+                if ((player.ComboPoints == 5 || player.ComboPoints >= 2 && targetedEnemy.HealthPercent < 20) && IsSpellReady("Ferocious Bite", "Cat Form"))
+                    return CastAtTarget("Ferocious Bite", "Cat Form");
+
+                if(targetedEnemy.IsPositionBehind(player.Position) && IsSpellReady("Shred", "Cat Form"))
+                    return CastAtTarget("Shred", "Cat Form", facing: SpellFacingFlags.BehindAndFaceTarget);
+                if (player.HasAura("Stampede") && IsSpellReady("Ravage", "Cat Form"))
+                    return CastAtTarget("Ravage", "Cat Form");
+                if ((!targetedEnemy.IsPositionBehind(player.Position) || !targetedEnemy.HasAura("Mangle", true)) && IsSpellReady("Mangle", "Cat Form"))
+                    return CastAtTarget("Mangle", "Cat Form");
 
                 return CastAtTarget(sb.AutoAttack);
             }
             return null;
-        }
-        private bool IsTotemLanded(string totemName)
-        {
-            return ObjectManager.Instance.PlayerTotems.Where(totem => totem.Name == totemName).Any();
         }
     }
 }

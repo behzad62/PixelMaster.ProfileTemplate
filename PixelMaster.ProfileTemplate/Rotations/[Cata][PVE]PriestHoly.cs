@@ -47,7 +47,7 @@ namespace CombatClasses
                 if (IsSpellReadyOrCasting("Holy Fire"))
                     return CastAtTarget("Holy Fire");
                 if (IsSpellReadyOrCasting("Smite"))
-                    return CastAtPlayer("Smite");
+                    return CastAtTarget("Smite");
             }
             return CastAtTarget(sb.AutoAttack);
         }

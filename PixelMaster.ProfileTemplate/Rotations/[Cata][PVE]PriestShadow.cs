@@ -43,11 +43,11 @@ namespace CombatClasses
                 if (settings.DevouringPlagueFirst && (targetedEnemy.IsElite || !PlayerLearnedSpell("Mind Spike")) && IsSpellReadyOrCasting("Devouring Plague"))
                     return CastAtTarget("Devouring Plague");
                 if ((targetedEnemy.IsElite || !PlayerLearnedSpell("Mind Spike")) && IsSpellReadyOrCasting("Vampiric Touch"))
-                    return CastAtPlayer("Vampiric Touch");
-                if(IsSpellReadyOrCasting("Mind Blast"))
-                    return CastAtPlayer("Mind Blast");
+                    return CastAtTarget("Vampiric Touch");
+                if (IsSpellReadyOrCasting("Mind Blast"))
+                    return CastAtTarget("Mind Blast");
                 if (IsSpellReadyOrCasting("Smite"))
-                    return CastAtPlayer("Smite");
+                    return CastAtTarget("Smite");
             }
             return CastAtTarget(sb.AutoAttack);
         }
@@ -81,8 +81,8 @@ namespace CombatClasses
                 if (healingPot != null)
                     return UseItem(healingPot);
             }
-            if(!player.HasAura("Shadowform") && IsSpellReady("Shadowform"))
-                return CastAtPlayerLocation("Shadowform", isHarmfulSpell:false);
+            if (!player.HasAura("Shadowform") && IsSpellReady("Shadowform"))
+                return CastAtPlayerLocation("Shadowform", isHarmfulSpell: false);
             if (targetedEnemy != null && (targetedEnemy.HealthPercent >= 60 || targetedEnemy.IsElite) && player.PowerPercent <= settings.ShadowfiendMana && IsSpellReady("Shadowfiend"))
                 return CastAtTarget("Shadowfiend");
             if (player.IsFleeingFromTheFight)
@@ -141,6 +141,8 @@ namespace CombatClasses
                     return CastAtTarget("Mind Blast");
                 if (IsSpellReadyOrCasting("Mind Spike"))
                     return CastAtTarget("Mind Spike");
+                if (player.Level < 20 && IsSpellReadyOrCasting("Smite"))
+                    return CastAtTarget("Smite");
                 if (IsSpellReady("Shoot"))
                     return CastAtTarget("Shoot");
             }
