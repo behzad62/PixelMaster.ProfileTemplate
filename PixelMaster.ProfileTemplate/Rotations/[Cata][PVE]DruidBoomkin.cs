@@ -137,11 +137,11 @@ namespace CombatClasses
             //Targeted enemy
             if (targetedEnemy != null)
             {
-                if (targetedEnemy.IsCasting && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
+                if (targetedEnemy.IsCasting)
                 {
                     if (player.Form == ShapeshiftForm.MoonkinForm && IsSpellReady("Solar Beam"))
                         return CastAtGround(targetedEnemy.Position, "Solar Beam");
-                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Bash", "Bear Form"))
+                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Bash", "Bear Form") && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
                         return CastAtTarget("Bash", "Bear Form");
                     if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
                         return CastAtPlayerLocation("War Stomp");
