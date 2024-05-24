@@ -68,11 +68,11 @@ namespace CombatClasses
             }
             if (player.HealthPercent < 15 && IsSpellReady("Lay on Hands"))
                 return CastAtPlayer("Lay on Hands");
-            if (player.HealthPercent < 30 && IsSpellReadyOrCasting("Flash of Light"))
+            if (player.HealthPercent < 40 && IsSpellReadyOrCasting("Flash of Light"))
                 return CastAtPlayer("Flash of Light");
-            if (player.HealthPercent < 30 && !PlayerLearnedSpell("Flash of Light") && IsSpellReadyOrCasting("Holy Light"))
+            if (player.HealthPercent < 40 && !PlayerLearnedSpell("Flash of Light") && IsSpellReadyOrCasting("Holy Light"))
                 return CastAtPlayer("Holy Light");
-            if (player.HealthPercent < 50 && player.SecondaryPower == 3 && IsSpellReady("Word of Glory"))
+            if (player.HealthPercent < 60 && player.SecondaryPower == 3 && IsSpellReady("Word of Glory"))
                 return CastAtPlayer("Word of Glory");
 
             if (player.Auras.Any(a=>a.Spell != null && IsImpairingSpell(a.Spell)) && IsSpellReady("Hand of Freedom"))

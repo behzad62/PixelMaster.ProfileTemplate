@@ -40,7 +40,7 @@ namespace CombatClasses
                 return CastAtPlayerLocation("Lightning Shield", isHarmfulSpell: false);
             if (targetedEnemy != null)
             {
-                if (IsSpellReady("Call of the Elements"))
+                if (IsSpellReady("Call of the Elements") && !ObjectManager.Instance.PlayerTotems.Any())
                     return CastAtPlayerLocation("Call of the Elements");
                 if (IsSpellReady("Earth Shock"))
                     return CastAtTarget("Earth Shock");

@@ -60,8 +60,10 @@ namespace CombatClasses
                         return CastAtTarget("Ravage");
                     if (IsSpellReady("Pounce"))
                         return CastAtTarget("Pounce");
-                    if (IsSpellReady("Mangle"))
-                        return CastAtTarget("Mangle");
+                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Mangle", "Bear Form"))
+                        return CastAtTarget("Mangle", "Bear Form");
+                    if (player.Form == ShapeshiftForm.Cat && IsSpellReady("Mangle", "Cat Form"))
+                        return CastAtTarget("Mangle", "Cat Form");
                 }
 
                 if (player.Form != ShapeshiftForm.Cat && IsSpellReady("Cat Form"))
@@ -179,8 +181,10 @@ namespace CombatClasses
                         return CastAtTarget("Ferocious Bite", "Cat Form");
                     if (targetedEnemy.IsElite && IsSpellReady("Rake", "Cat Form"))
                         return CastAtTarget("Rake", "Cat Form");
-                    if (IsSpellReady("Mangle", "Bear Form"))
+                    if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Mangle", "Bear Form"))
                         return CastAtTarget("Mangle", "Bear Form");
+                    if (player.Form == ShapeshiftForm.Cat && IsSpellReady("Mangle", "Cat Form"))
+                        return CastAtTarget("Mangle", "Cat Form");
                 }
                 else if (player.Level < 46) 
                 {
