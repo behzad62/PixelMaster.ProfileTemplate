@@ -139,7 +139,7 @@ namespace CombatClasses
                 if (targetedEnemy.IsElite && IsSpellReady("Fire Elemental Totem"))
                     return CastAtPlayerLocation("Fire Elemental Totem", isHarmfulSpell: true);
 
-                if (targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => t.Name == "Searing Totem" || t.Name == "Fire Elemental Totem"))
+                if (targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => (t.Name == "Searing Totem" && Vector3.DistanceSquared(t.Position, targetedEnemy.Position) < 35 * 35) || t.Name == "Fire Elemental Totem"))
                     return CastAtPlayerLocation("Searing Totem", isHarmfulSpell: true);
                 if (!targetedEnemy.HasAura("Flame Shock", true) && IsSpellReady("Flame Shock"))
                     return CastAtTarget("Flame Shock", facing: SpellFacingFlags.None);
