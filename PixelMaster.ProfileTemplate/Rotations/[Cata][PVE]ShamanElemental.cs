@@ -62,7 +62,6 @@ namespace CombatClasses
             if (player.IsMoving && IsSpellReady("Spiritwalker's Grace"))
                 return CastAtPlayerLocation("Spiritwalker's Grace", isHarmfulSpell: false);
 
-
             if (player.HealthPercent < 45)
             {
                 var healthStone = inv.GetHealthstone();
@@ -72,14 +71,6 @@ namespace CombatClasses
                 if (healingPot != null)
                     return UseItem(healingPot);
             }
-
-            if (settings.ElementalHeal && player.HealthPercent < 60)
-            {
-                if (!PlayerLearnedSpell("Healing Surge") && IsSpellReadyOrCasting("Healing Wave"))
-                    return CastAtPlayer("Healing Wave");
-                if (IsSpellReadyOrCasting("Healing Surge"))
-                    return CastAtPlayer("Healing Surge");
-            }
             if (player.IsFleeingFromTheFight)
             {
                 if (IsSpellReady("Earthbind Totem") && !IsTotemLanded("Earthbind Totem"))
@@ -88,6 +79,14 @@ namespace CombatClasses
                     return CastAtPlayerLocation("Stoneclaw Totem");
                 return null;
             }
+            if (settings.ElementalHeal && player.HealthPercent < 60)
+            {
+                if (!PlayerLearnedSpell("Healing Surge") && IsSpellReadyOrCasting("Healing Wave"))
+                    return CastAtPlayer("Healing Wave");
+                if (IsSpellReadyOrCasting("Healing Surge"))
+                    return CastAtPlayer("Healing Surge");
+            }
+
             //Burst
             //if (dynamicSettings.BurstEnabled)
             //{
@@ -142,7 +141,7 @@ namespace CombatClasses
                 if (targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => (t.Name == "Searing Totem" && Vector3.DistanceSquared(t.Position, targetedEnemy.Position) < 35 * 35) || t.Name == "Fire Elemental Totem"))
                     return CastAtPlayerLocation("Searing Totem", isHarmfulSpell: true);
                 if (!targetedEnemy.HasAura("Flame Shock", true) && IsSpellReady("Flame Shock"))
-                    return CastAtTarget("Flame Shock", facing: SpellFacingFlags.None);
+                    return CastAtTarget("Flame Shock");
                 if (IsSpellReadyOrCasting("Lava Burst"))
                     return CastAtTarget("Lava Burst");
                 if (IsSpellReady("Earth Shock") && player.AuraStacks("Lightning Shield") >= 7 && targetedEnemy.AuraRemainingTime("Flame Shock", true).TotalSeconds >= 6)
