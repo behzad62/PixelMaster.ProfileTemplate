@@ -52,12 +52,12 @@ namespace CombatClasses
                 {
                     if(player.Form != ShapeshiftForm.Cat && IsSpellReady("Cat Form"))
                         return CastAtPlayerLocation("Cat Form", isHarmfulSpell: false);
-                    if (!player.IsStealthed && IsSpellReady("Prowl") && targetedEnemy.DistanceSquaredToPlayer < 30 * 30)
+                    if (!player.IsStealthed && IsSpellReady("Prowl") && targetedEnemy.DistanceSquaredToPlayer < 40 * 40)
                         return CastAtPlayerLocation("Prowl", isHarmfulSpell: false);
                     if (IsSpellReady("Feral Charge (Cat)", "Cat Form"))
                         return CastAtTarget("Feral Charge (Cat)");
                     if(targetedEnemy.IsPositionBehind(player.Position) && IsSpellReady("Ravage"))
-                        return CastAtTarget("Ravage");
+                        return CastAtTarget("Ravage", facing: SpellFacingFlags.BehindAndFaceTarget);
                     if (IsSpellReady("Pounce"))
                         return CastAtTarget("Pounce");
                     if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Mangle", "Bear Form"))
