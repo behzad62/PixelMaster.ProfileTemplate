@@ -57,6 +57,9 @@ namespace CombatClasses
             var inv = player.Inventory;
             var comboPoints = player.SecondaryPower;
 
+            if (!player.HasAura("Seal of Truth") && IsSpellReady("Seal of Truth"))
+                return CastAtPlayerLocation("Seal of Truth", isHarmfulSpell:false);
+
             if (player.HealthPercent < 45)
             {
                 var healthStone = inv.GetHealthstone();
@@ -75,16 +78,16 @@ namespace CombatClasses
             if (player.HealthPercent < 60 && player.SecondaryPower == 3 && IsSpellReady("Word of Glory"))
                 return CastAtPlayer("Word of Glory");
 
-            if (player.Auras.Any(a=>a.Spell != null && IsImpairingSpell(a.Spell)) && IsSpellReady("Hand of Freedom"))
+            if (player.Auras.Any(a => a.Spell != null && IsImpairingSpell(a.Spell)) && IsSpellReady("Hand of Freedom"))
                 return CastAtPlayer("Hand of Freedom");
 
-            if(player.PowerPercent < 20)
+            if (player.PowerPercent < 20)
                 return CastAtPlayer("Divine Plea");
 
             if (player.IsFleeingFromTheFight)
             {
-                if(IsSpellReady("Divine Shield"))
-                    return CastAtPlayerLocation("Divine Shield", isHarmfulSpell:false);
+                if (IsSpellReady("Divine Shield"))
+                    return CastAtPlayerLocation("Divine Shield", isHarmfulSpell: false);
                 return null;
             }
             //Burst
@@ -99,7 +102,7 @@ namespace CombatClasses
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
                 if (nearbyEnemies.Count >= settings.ConsecrationCount)
                 {
-                    if(IsSpellReady("Zealotry"))
+                    if (IsSpellReady("Zealotry"))
                         return CastAtPlayerLocation("Zealotry", isHarmfulSpell: false);
                     if (IsSpellReady("Avenging Wrath"))
                         return CastAtPlayerLocation("Avenging Wrath", isHarmfulSpell: false);
@@ -142,9 +145,9 @@ namespace CombatClasses
                     return CastAtTarget("Crusader Strike");
                 if (IsSpellReady("Hammer of Wrath"))
                     return CastAtTarget("Hammer of Wrath");
-                if(player.SecondaryPower == 3 && IsSpellReady("Templar's Verdict") && (player.HasAura("Inquisition") || !PlayerLearnedSpell("Inquisition")))
+                if (player.SecondaryPower == 3 && IsSpellReady("Templar's Verdict") && (player.HasAura("Inquisition") || !PlayerLearnedSpell("Inquisition")))
                     return CastAtTarget("Templar's Verdict");
-                if(player.AuraStacks("The Art of War") > 0 && IsSpellReady("Exorcism"))
+                if (player.AuraStacks("The Art of War") > 0 && IsSpellReady("Exorcism"))
                     return CastAtTarget("Exorcism");
                 if (IsSpellReady("Judgement"))
                     return CastAtTarget("Judgement");
@@ -157,7 +160,7 @@ namespace CombatClasses
         {
             if (spell.Categories != null)
             {
-                if (spell.Categories.Any(c=>IsImpairingMechanic(c.Mechanic)))
+                if (spell.Categories.Any(c => IsImpairingMechanic(c.Mechanic)))
                     return true;
             }
             if (spell.Effects != null)

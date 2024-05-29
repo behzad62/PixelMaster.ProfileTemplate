@@ -47,7 +47,8 @@ namespace CombatClasses
             return CastAtTarget(sb.AutoAttack);
         }
 
-        public SpellCastInfo? RotationSpell()
+        private static string[] _slows = { "Hamstring", "Piercing Howl", "Crippling Poison", "Hand of Freedom", "Infected Wounds" };
+    public SpellCastInfo? RotationSpell()
         {
             var om = ObjectManager.Instance;
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
@@ -83,21 +84,7 @@ namespace CombatClasses
             if (inCombatEnemies.Count > 1)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
-                if (nearbyEnemies.Count >= settings.ConsecrationCount)
-                {
-                    if(IsSpellReady("Zealotry"))
-                        return CastAtPlayerLocation("Zealotry", isHarmfulSpell: false);
-                    if (IsSpellReady("Avenging Wrath"))
-                        return CastAtPlayerLocation("Avenging Wrath", isHarmfulSpell: false);
-                    if (IsSpellReady("Guardian of Ancient Kings"))
-                        return CastAtPlayerLocation("Guardian of Ancient Kings", isHarmfulSpell: false);
-                    if (IsSpellReady("Divine Storm"))
-                        return CastAtPlayerLocation("Divine Storm", isHarmfulSpell: true);
-                    if (IsSpellReady("Consecration"))
-                        return CastAtPlayerLocation("Consecration", isHarmfulSpell: true);
-                    if (IsSpellReady("Holy Wrath"))
-                        return CastAtPlayerLocation("Holy Wrath", isHarmfulSpell: true);
-                }
+
             }
 
             //Targeted enemy
@@ -105,23 +92,26 @@ namespace CombatClasses
             {
                 if (targetedEnemy.IsCasting)
                 {
-                    if (IsSpellReady("Rebuke") && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
-                        return CastAtTarget("Rebuke");
-                    if (IsSpellReady("Hammer of Justice") && targetedEnemy.DistanceSquaredToPlayer < 15 * 15)
-                        return CastAtTarget("Hammer of Justice");
+                    if ((targetedEnemy.IsPlayer || targetedEnemy.IsElite) && settings.UseWarriorThrowdown && IsSpellReady("Throwdown"))
+                        return CastAtTarget("Throwdown");
+                    if (targetedEnemy.IsPlayer && !settings.UseWarriorBasicRotation && IsSpellReady("Intimidating Shout") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
+                        return CastAtTarget("Intimidating Shout");
                 }
 
 
                 if (targetedEnemy.IsElite)
                 {
-                    if (IsSpellReady("Zealotry"))
-                        return CastAtPlayerLocation("Zealotry", isHarmfulSpell: false);
-                    if (IsSpellReady("Avenging Wrath"))
-                        return CastAtPlayerLocation("Avenging Wrath", isHarmfulSpell: false);
-                }
 
+                }
+                // Dispel Bubbles
                 if (!settings.UseWarriorBasicRotation && targetedEnemy.IsPlayer && IsSpellReadyOrCasting("Shattering Throw") && (targetedEnemy.Class == UnitClass.Mage && targetedEnemy.HasAura("Ice Block") || targetedEnemy.HasAura("Hand of Protection") || targetedEnemy.HasAura("Divine Shield")))
                     return CastAtTarget("Shattering Throw");
+                //Rocket belt!
+                if (targetedEnemy.IsPlayer && targetedEnemy.DistanceSquaredToPlayer > 20 * 20 && IsEquippedItemReady(EquipSlot.Waist))
+                    return UseEquippedItem(EquipSlot.Waist);
+                // Use Engineering Gloves
+                if (IsEquippedItemReady(EquipSlot.Hands))
+                    return UseEquippedItem(EquipSlot.Hands);
                 //Stance Dancing
                 //Pop over to Zerker
                 if (player.Form != ShapeshiftForm.BerserkerStance && player.PowerPercent <= 75 && settings.UseWarriorStanceDance && targetedEnemy.IsBoss && IsSpellReady("Berserker Stance") && targetedEnemy.HasAura("Rend")  && !player.HasAura("Taste for Blood"))
@@ -136,11 +126,48 @@ namespace CombatClasses
                 //use it or lose it
                 if (player.AuraStacks("Sudden Death") > 0 && IsSpellReady("Colossus Smash"))
                     return CastAtTarget("Colossus Smash");
+                // ranged slow
+                if (settings.UseWarriorSlows && !settings.UseWarriorBasicRotation &&
+                    targetedEnemy.IsPlayer && targetedEnemy.DistanceSquaredToPlayer < 10 * 10 && IsSpellReady("Piercing Howl") && !_slows.Any(a => targetedEnemy.HasAura(a)))
+                    return CastAtPlayerLocation("Piercing Howl");
+                // Melee slow
+                if (settings.UseWarriorSlows && !settings.UseWarriorBasicRotation &&
+                    targetedEnemy.IsPlayer && IsSpellReady("Hamstring") && !_slows.Any(a => targetedEnemy.HasAura(a)))
+                    return CastAtTarget("Hamstring");
+                if(player.HealthPercent < 80 && IsSpellReady("Victory Rush"))
+                    return CastAtTarget("Victory Rush");
+                if(targetedEnemy.IsBoss && targetedEnemy.HealthPercent <= 25 && IsSpellReadyOrCasting("Shattering Throw"))
+                    return CastAtTarget("Shattering Throw");
+                //Execute under 20%
+                if (targetedEnemy.HealthPercent < 20 && IsSpellReady("Execute"))
+                    return CastAtTarget("Execute");
+                //Default Rotatiom
+                if (IsSpellReady("Rend"))
+                    return CastAtTarget("Rend");
+                if (IsSpellReady("Colossus Smash"))
+                    return CastAtTarget("Colossus Smash");
+                if (IsSpellReady("Mortal Strike"))
+                    return CastAtTarget("Mortal Strike");
+                if(settings.UseWarriorBladestorm && targetedEnemy.IsPlayer && targetedEnemy.DistanceSquaredToPlayer < 36)
+                    return CastAtTarget("Bladestorm");
+                if (IsSpellReady("Overpower"))
+                    return CastAtTarget("Overpower");
+                if(player.PowerPercent > 40 && settings.UseWarriorSlamTalent && IsSpellReady("Slam"))
+                    return CastAtTarget("Slam");
+
                 return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }
+        static bool CanUseRageDump()
+        {
+            // Pooling rage for upcoming CS. If its > 8s, make sure we have 60 rage. < 8s, only pop it at 85 rage.
+            if (PlayerLearnedSpell("Colossus Smash"))
+                return GetSpellCooldown("Colossus Smash").TotalSeconds > 8 ? ObjectManager.Instance.Player.PowerPercent > 60 : ObjectManager.Instance.Player.PowerPercent > 85;
 
+            // We don't know CS. So just check if we have 60 rage to use cleave.
+            return ObjectManager.Instance.Player.PowerPercent > 60;
+        }
         static bool IsImpairingSpell(Spell spell)
         {
             if (spell.Categories != null)
