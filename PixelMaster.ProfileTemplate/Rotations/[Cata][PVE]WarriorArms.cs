@@ -13,6 +13,8 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
+using System.ComponentModel.Design;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace CombatClasses
 {
@@ -39,10 +41,25 @@ namespace CombatClasses
 
             if (targetedEnemy != null)
             {
-                if (player.AuraStacks("The Art of War") > 0 && IsSpellReady("Exorcism"))
-                    return CastAtTarget("Exorcism");
-                if (IsSpellReady("Judgement"))
-                    return CastAtTarget("Judgement");
+                if((settings.UseWarriorShouts || settings.UseWarriorT12) && !player.Auras.Any(a=> a.Spell != null &&(a.Spell.Name == "Horn of Winter" || a.Spell.Name == "Roar of Courage" || a.Spell.Name == "Strength of Earth Totem" || a.Spell.Name == "Battle Shout")))
+                    return CastAtPlayerLocation("Battle Shout", isHarmfulSpell: false);
+                if(!settings.UseWarriorShouts && player.PowerPercent < 20)
+                    return CastAtPlayerLocation("Commanding Shout", isHarmfulSpell: false);
+                if (targetedEnemy.IsFlying)
+                {
+                    if (IsSpellReadyOrCasting("Heroic Throw"))
+                        return CastAtTarget("Heroic Throw");
+                    if (IsSpellReadyOrCasting("Throw"))
+                        return CastAtTarget("Throw");
+                    if (IsSpellReadyOrCasting("Shoot"))
+                        return CastAtTarget("Shoot");
+                } 
+                if (settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 100 && targetedEnemy.DistanceSquaredToPlayer < 25 * 25 && IsSpellReady("Charge"))
+                    return CastAtTarget("Charge");
+                if (!settings.UseWarriorBasicRotation && settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 81 && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Leap"))
+                    return CastAtGround(targetedEnemy.Position, "Heroic Leap");
+                if (!settings.UseWarriorBasicRotation && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Throw"))
+                    return CastAtGround(targetedEnemy.Position, "Heroic Throw");
             }
             return CastAtTarget(sb.AutoAttack);
         }
@@ -81,9 +98,22 @@ namespace CombatClasses
             //}
             //AoE handling
             List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
-            if (inCombatEnemies.Count > 1)
+            if (inCombatEnemies.Count > 1 && settings.UseWarriorAOE)
             {
-                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
+                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 6);
+                if(nearbyEnemies.Count >= 3)
+                {
+                    if (settings.UseWarriorDpsCooldowns && !settings.UseWarriorBasicRotation && IsSpellReady("Recklessness"))
+                        return CastAtPlayerLocation("Recklessness", isHarmfulSpell: false);
+                    if (IsSpellReady("Sweeping Strikes"))
+                        return CastAtPlayerLocation("Sweeping Strikes", isHarmfulSpell:false);
+                    if (settings.UseWarriorBladestorm && IsSpellReadyOrCasting("Bladestorm"))
+                        return CastAtPlayerLocation("Bladestorm");
+                    if (targetedEnemy != null && IsSpellReady("Cleave"))
+                        return CastAtTarget("Cleave");
+                    if (targetedEnemy != null && IsSpellReady("Mortal Strike"))
+                        return CastAtTarget("Mortal Strike");
+                }
 
             }
 
@@ -94,8 +124,10 @@ namespace CombatClasses
                 {
                     if ((targetedEnemy.IsPlayer || targetedEnemy.IsElite) && settings.UseWarriorThrowdown && IsSpellReady("Throwdown"))
                         return CastAtTarget("Throwdown");
-                    if (targetedEnemy.IsPlayer && !settings.UseWarriorBasicRotation && IsSpellReady("Intimidating Shout") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
+                    if (targetedEnemy.IsPlayer && !settings.UseWarriorBasicRotation && IsSpellReady("Intimidating Shout") && targetedEnemy.DistanceSquaredToPlayer < 64)
                         return CastAtTarget("Intimidating Shout");
+                    if (IsSpellReady("Pummel") && targetedEnemy.DistanceSquaredToPlayer < 64)
+                        return CastAtTarget("Pummel");
                 }
 
 
@@ -154,7 +186,10 @@ namespace CombatClasses
                     return CastAtTarget("Overpower");
                 if(player.PowerPercent > 40 && settings.UseWarriorSlamTalent && IsSpellReady("Slam"))
                     return CastAtTarget("Slam");
-
+                if(IsSpellReady("Cleave") && GetUnitsInFrontOfPlayer(inCombatEnemies, 60, 6).Count >= 2 && (player.AuraStacks("Incite") > 0 || CanUseRageDump() || player.AuraStacks("Deadly Calm") > 0))
+                    return CastAtTarget("Cleave");
+                if (IsSpellReady("Heroic Strike") && (player.AuraStacks("Incite") > 0 || CanUseRageDump() || player.AuraStacks("Deadly Calm") > 0))
+                    return CastAtTarget("Heroic Strike");
                 return CastAtTarget(sb.AutoAttack);
             }
             return null;
@@ -167,34 +202,6 @@ namespace CombatClasses
 
             // We don't know CS. So just check if we have 60 rage to use cleave.
             return ObjectManager.Instance.Player.PowerPercent > 60;
-        }
-        static bool IsImpairingSpell(Spell spell)
-        {
-            if (spell.Categories != null)
-            {
-                if (spell.Categories.Any(c=>IsImpairingMechanic(c.Mechanic)))
-                    return true;
-            }
-            if (spell.Effects != null)
-            {
-                return spell.Effects.Any(e => IsImpairingMechanic(e.EffectMechanic));
-            }
-            return false;
-
-            static bool IsImpairingMechanic(SpellMechanic mechanic)
-            {
-                return mechanic switch
-                {
-                    SpellMechanic.Dazed => true,
-                    SpellMechanic.Disoriented => true,
-                    SpellMechanic.Frozen => true,
-                    SpellMechanic.Incapacitated => true,
-                    SpellMechanic.Rooted => true,
-                    SpellMechanic.Slowed => true,
-                    SpellMechanic.Snared => true,
-                    _ => false,
-                };
-            }
         }
     }
 }
