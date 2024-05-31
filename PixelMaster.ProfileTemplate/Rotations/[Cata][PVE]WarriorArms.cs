@@ -72,7 +72,7 @@ namespace CombatClasses
             var sb = player.SpellBook;
             var inv = player.Inventory;
             var isEra = WowProcessManager.Instance.WowVersion == PixelMaster.Server.Shared.WowVersion.Classic_Era;
-
+            settings.UseWarriorStanceDance = true;
             if (player.HealthPercent < 45)
             {
                 var healthStone = inv.GetHealthstone();
@@ -172,7 +172,7 @@ namespace CombatClasses
                 if (targetedEnemy.HealthPercent < 20 && IsSpellReady("Execute"))
                     return CastAtTarget("Execute");
                 //Default Rotatiom
-                if (IsSpellReady("Rend"))
+                if (IsSpellReady("Rend") && !targetedEnemy.HasAura("Rend"))
                     return CastAtTarget("Rend");
                 if (IsSpellReady("Colossus Smash"))
                     return CastAtTarget("Colossus Smash");
@@ -182,7 +182,7 @@ namespace CombatClasses
                     return CastAtTarget("Bladestorm");
                 if (IsSpellReady("Overpower"))
                     return CastAtTarget("Overpower");
-                if(player.PowerPercent > 40 && settings.UseWarriorSlamTalent && IsSpellReady("Slam"))
+                if(player.PowerPercent > 40 && settings.UseWarriorSlamTalent && IsSpellReadyOrCasting("Slam"))
                     return CastAtTarget("Slam");
                 if(IsSpellReady("Cleave") && GetUnitsInFrontOfPlayer(inCombatEnemies, 60, 6).Count >= 2 && (player.AuraStacks("Incite") > 0 || CanUseRageDump() || player.AuraStacks("Deadly Calm") > 0))
                     return CastAtTarget("Cleave");
