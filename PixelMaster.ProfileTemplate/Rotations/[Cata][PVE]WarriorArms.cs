@@ -13,8 +13,6 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
-using System.ComponentModel.Design;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace CombatClasses
 {
