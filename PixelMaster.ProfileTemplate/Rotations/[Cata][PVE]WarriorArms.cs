@@ -57,7 +57,7 @@ namespace CombatClasses
                 if (!settings.UseWarriorBasicRotation && settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 81 && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Leap"))
                     return CastAtGround(targetedEnemy.Position, "Heroic Leap");
                 if (!settings.UseWarriorBasicRotation && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Throw"))
-                    return CastAtGround(targetedEnemy.Position, "Heroic Throw");
+                    return CastAtTarget("Heroic Throw");
             }
             return CastAtTarget(sb.AutoAttack);
         }
