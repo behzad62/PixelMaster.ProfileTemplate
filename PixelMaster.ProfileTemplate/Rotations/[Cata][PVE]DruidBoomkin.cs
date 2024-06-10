@@ -184,7 +184,7 @@ namespace CombatClasses
         }
         static int MushroomCount
         {
-            get { return ObjectManager.Instance.GetVisibleUnits().Where(o => o.FactionID == 4 && o.DistanceSquaredToPlayer <= 40 * 40 && o.CreatorGuid == ObjectManager.Instance.PlayerGUID).Count(); }
+            get { return ObjectManager.Instance.GetVisibleUnits().Where(o => o.Name == "Wild Mushroom" && o.DistanceSquaredToPlayer <= 40 * 40 && o.CreatorGuid == ObjectManager.Instance.PlayerGUID).Count(); }
         }
 
 

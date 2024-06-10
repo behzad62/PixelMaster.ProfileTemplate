@@ -39,6 +39,13 @@ namespace CombatClasses
 
             if (targetedEnemy != null)
             {
+                if (targetedEnemy.IsFlying)
+                {
+                    if (IsSpellReady("Moonfire"))
+                        return CastAtTarget("Moonfire");
+                    if (IsSpellReadyOrCasting("Wrath"))
+                        return CastAtTarget("Wrath");
+                }
                 if(player.Level < 20)
                 {
                     if (IsSpellReady("Feral Charge", "Bear Form"))
@@ -76,6 +83,14 @@ namespace CombatClasses
                     return CastAtPlayerLocation("Dash", "Cat Form", isHarmfulSpell: false);
                 if (targetedEnemy.DistanceSquaredToPlayer > 8 * 8 && IsSpellReady("Stampeding Roar", "Cat Form") && !IsSpellReady("Feral Charge", "Cat Form") && !IsSpellReady("Dash") && !player.HasAura("Dash"))
                     return CastAtPlayerLocation("Stampeding Roar", "Cat Form", isHarmfulSpell: false);
+                if (targetedEnemy.IsPositionBehind(player.Position) && IsSpellReady("Ravage"))
+                    return CastAtTarget("Ravage", facing: SpellFacingFlags.BehindAndFaceTarget);
+                if (IsSpellReady("Pounce"))
+                    return CastAtTarget("Pounce");
+                if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Mangle", "Bear Form"))
+                    return CastAtTarget("Mangle", "Bear Form");
+                if (player.Form == ShapeshiftForm.Cat && IsSpellReady("Mangle", "Cat Form"))
+                    return CastAtTarget("Mangle", "Cat Form");
             }
             return CastAtTarget(sb.AutoAttack);
         }
@@ -220,7 +235,7 @@ namespace CombatClasses
 
                 if(targetedEnemy.IsPositionBehind(player.Position) && IsSpellReady("Shred", "Cat Form"))
                     return CastAtTarget("Shred", "Cat Form", facing: SpellFacingFlags.BehindAndFaceTarget);
-                if (player.HasAura("Stampede") && IsSpellReady("Ravage", "Cat Form"))
+                if (player.AuraStacks("Stampede") > 0 && IsSpellReady("Ravage", "Cat Form"))
                     return CastAtTarget("Ravage", "Cat Form");
                 if ((!targetedEnemy.IsPositionBehind(player.Position) || !targetedEnemy.HasAura("Mangle", true)) && IsSpellReady("Mangle", "Cat Form"))
                     return CastAtTarget("Mangle", "Cat Form");
