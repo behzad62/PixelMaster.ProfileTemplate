@@ -188,6 +188,10 @@ namespace CombatClasses
                     return CastAtTarget("Cleave");
                 if (IsSpellReady("Heroic Strike") && (player.AuraStacks("Incite") > 0 || CanUseRageDump() || player.AuraStacks("Deadly Calm") > 0))
                     return CastAtTarget("Heroic Strike");
+                if(targetedEnemy.IsElite && (om.PlayerGroup != null || CanUseRageDump() && IsSpellReady("Sunder Armor") && targetedEnemy.AuraStacks("Sunder Armor") < 3))
+                    return CastAtTarget("Sunder Armor");
+                if (player.Level < 14 && IsSpellReady("Strike"))
+                    return CastAtTarget("Strike");
                 return CastAtTarget(sb.AutoAttack);
             }
             return null;
