@@ -39,7 +39,7 @@ namespace CombatClasses
 
             if (targetedEnemy != null)
             {
-                if((settings.UseWarriorShouts || settings.UseWarriorT12) && !player.Auras.Any(a=> a.Spell != null &&(a.Spell.Name == "Horn of Winter" || a.Spell.Name == "Roar of Courage" || a.Spell.Name == "Strength of Earth Totem" || a.Spell.Name == "Battle Shout")))
+                if((settings.UseWarriorShouts || settings.UseWarriorT12) && IsSpellReady("Battle Shout") && !player.Auras.Any(a=> a.Spell != null &&(a.Spell.Name == "Horn of Winter" || a.Spell.Name == "Roar of Courage" || a.Spell.Name == "Strength of Earth Totem" || a.Spell.Name == "Battle Shout")))
                     return CastAtPlayerLocation("Battle Shout", isHarmfulSpell: false);
                 if(!settings.UseWarriorShouts && player.PowerPercent < 20)
                     return CastAtPlayerLocation("Commanding Shout", isHarmfulSpell: false);
@@ -52,9 +52,9 @@ namespace CombatClasses
                     if (IsSpellReadyOrCasting("Shoot"))
                         return CastAtTarget("Shoot");
                 } 
-                if (settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 100 && targetedEnemy.DistanceSquaredToPlayer < 25 * 25 && IsSpellReady("Charge"))
+                if (settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 100 && IsSpellReady("Charge"))
                     return CastAtTarget("Charge");
-                if (!settings.UseWarriorBasicRotation && settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 81 && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Leap"))
+                if (!settings.UseWarriorBasicRotation && settings.UseWarriorCloser && targetedEnemy.DistanceSquaredToPlayer >= 100 && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Leap"))
                     return CastAtGround(targetedEnemy.Position, "Heroic Leap");
                 if (!settings.UseWarriorBasicRotation && targetedEnemy.AuraStacks("Charge Stun") == 0 && IsSpellReady("Heroic Throw"))
                     return CastAtTarget("Heroic Throw");

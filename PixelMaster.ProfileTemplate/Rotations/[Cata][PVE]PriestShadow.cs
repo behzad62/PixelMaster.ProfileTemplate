@@ -26,7 +26,7 @@ namespace CombatClasses
         // 2 - Healer: Will try to target party/raid members and get in range to heal them
         // 3 - Tank: Will try to engage nearby enemies who targeting alies
         public CombatRole Role => CombatRole.RangeDPS;
-        public string Name => "[Cata][PvE]Prist-Shadow";
+        public string Name => "[Cata][PvE]Priest-Shadow";
         public string Author => "PixelMaster";
         public string Description => "General PvE";
 
@@ -38,7 +38,7 @@ namespace CombatClasses
             var targetedEnemy = om.AnyEnemy;
             if (targetedEnemy != null)
             {
-                if (settings.UseShieldPrePull && !player.HasAura("Weakened Soul") && !PlayerLearnedSpell("Mind Spike") && IsSpellReady("Power Word: Shield"))
+                if (settings.UseShieldPrePull && (targetedEnemy.IsElite || targetedEnemy.DistanceSquaredToPlayer < 15 * 15) && !player.HasAura("Weakened Soul") && !PlayerLearnedSpell("Mind Spike") && IsSpellReady("Power Word: Shield"))
                     return CastAtPlayer("Power Word: Shield");
                 if (settings.DevouringPlagueFirst && (targetedEnemy.IsElite || !PlayerLearnedSpell("Mind Spike")) && IsSpellReadyOrCasting("Devouring Plague"))
                     return CastAtTarget("Devouring Plague");
@@ -122,13 +122,13 @@ namespace CombatClasses
                 {
                     if (targetedEnemy.HealthPercent <= 25 && IsSpellReady("Shadow Word: Death"))
                         return CastAtTarget("Shadow Word: Death");
-                    if ((targetedEnemy.HealthPercent > 40 || targetedEnemy.IsElite) && IsSpellReady("Shadow Word: Pain"))
+                    if ((targetedEnemy.HealthPercent > 40 || targetedEnemy.IsElite) && IsSpellReady("Shadow Word: Pain") && !targetedEnemy.HasAura("Shadow Word: Pain", true))
                         return CastAtTarget("Shadow Word: Pain");
                     if (player.HasAura("Shadow Orb") && IsSpellReadyOrCasting("Mind Blast"))
                         return CastAtTarget("Mind Blast");
-                    if ((targetedEnemy.HealthPercent > 40 || targetedEnemy.IsElite) && IsSpellReadyOrCasting("Vampiric Touch"))
+                    if ((targetedEnemy.HealthPercent > 40 || targetedEnemy.IsElite) && IsSpellReadyOrCasting("Vampiric Touch") && !targetedEnemy.HasAura("Vampiric Touch", true))
                         return CastAtTarget("Vampiric Touch");
-                    if ((targetedEnemy.HealthPercent > 40 || targetedEnemy.IsElite) && IsSpellReadyOrCasting("Devouring Plague"))
+                    if ((targetedEnemy.HealthPercent > 40 || targetedEnemy.IsElite) && IsSpellReadyOrCasting("Devouring Plague") && !targetedEnemy.HasAura("Devouring Plague", true))
                         return CastAtTarget("Devouring Plague");
                     if (IsSpellReadyOrCasting("Mind Blast"))
                         return CastAtTarget("Mind Blast");
@@ -143,7 +143,8 @@ namespace CombatClasses
                     return CastAtTarget("Mind Spike");
                 if (player.Level < 20 && IsSpellReadyOrCasting("Smite"))
                     return CastAtTarget("Smite");
-                if (IsSpellReady("Shoot"))
+                var wand = inv.GetEquippedItemsBySlot(EquipSlot.Ranged);
+                if (wand != null && IsSpellReady("Shoot"))
                     return CastAtTarget("Shoot");
             }
             return null;
