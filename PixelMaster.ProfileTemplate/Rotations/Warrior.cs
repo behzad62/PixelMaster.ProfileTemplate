@@ -158,7 +158,7 @@ namespace CombatClasses
             //Targeted enemy
             if (targetedEnemy != null)
             {
-                if(targetedEnemy.DistanceSquaredToPlayer >= 64 && targetedEnemy.DistanceSquaredToPlayer < 25 * 25)
+                if(targetedEnemy.DistanceSquaredToPlayer < 25 * 25 && targetedEnemy.IsInSpellRange("Charge"))
                 {
                     if (IsSpellReady("Charge"))
                         return CastAtTarget("Charge");
