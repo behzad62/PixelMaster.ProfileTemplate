@@ -75,7 +75,7 @@ namespace CombatClasses
 
                 if (player.Form != ShapeshiftForm.Cat && IsSpellReady("Cat Form"))
                     return CastAtPlayerLocation("Cat Form", isHarmfulSpell: false);
-                if (!player.IsStealthed && IsSpellReady("Prowl", "Cat Form") && targetedEnemy.DistanceSquaredToPlayer < 30 * 30)
+                if (targetedEnemy.Level >= player.Level - 4 && !player.IsStealthed && IsSpellReady("Prowl", "Cat Form") && targetedEnemy.DistanceSquaredToPlayer < 30 * 30)
                     return CastAtPlayerLocation("Prowl", "Cat Form", isHarmfulSpell: false);
                 if (IsSpellReady("Feral Charge", "Cat Form"))
                     return CastAtTarget("Feral Charge", "Cat Form");
