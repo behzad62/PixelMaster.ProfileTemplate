@@ -1,0 +1,157 @@
+﻿using PixelMaster.Core.API;
+using PixelMaster.Core.Managers;
+using PixelMaster.Core.Wow.Objects;
+
+using static PixelMaster.Core.API.PMRotationBuilder;
+using PixelMaster.Core.Interfaces;
+using PixelMaster.Core.Profiles;
+using PixelMaster.Core.Behaviors;
+using PixelMaster.Core.Behaviors.Transport;
+using PixelMaster.Services.Behaviors;
+using System.Collections.Generic;
+using System.Numerics;
+using System;
+using System.Linq;
+using AdvancedCombatClasses.Settings;
+
+namespace CombatClasses
+{
+    public class RogueCombat : IPMRotation
+    {
+        private RogueSettings settings => SettingsManager.Instance.Rogue;
+        public short Spec => 2;
+        public UnitClass PlayerClass => UnitClass.Druid;
+        // 0 - Melee DPS : Will try to stick to the target
+        // 1 - Range: Will try to kite target if it got too close.
+        // 2 - Healer: Will try to target party/raid members and get in range to heal them
+        // 3 - Tank: Will try to engage nearby enemies who targeting alies
+        public CombatRole Role => CombatRole.MeleeDPS;
+        public string Name => "[Cata][PvE]Druid-Feral";
+        public string Author => "PixelMaster";
+        public string Description => "General PvE";
+
+        public SpellCastInfo PullSpell()
+        {
+            var om = ObjectManager.Instance;
+            var player = om.Player;
+            var sb = player.SpellBook;
+            var targetedEnemy = om.AnyEnemy;
+
+            if (targetedEnemy != null)
+            {
+                if (targetedEnemy.IsFlying || (targetedEnemy.Position.Z - player.Position.Z) > 5 && targetedEnemy.DistanceSquaredToPlayer < 25)
+                {
+                    if (IsSpellReadyOrCasting("Throw"))
+                        return CastAtTarget("Throw");
+                    if (IsSpellReadyOrCasting("Shoot"))
+                        return CastAtTarget("Shoot");
+                    if (targetedEnemy.Level >= player.Level - 4 && !player.IsStealthed && IsSpellReady("Stealth"))
+                        return CastAtPlayerLocation("Stealth", isHarmfulSpell: false);
+                }
+
+                if(player.IsStealthed && IsSpellReady("Sprint"))
+                    return CastAtPlayerLocation("Sprint", isHarmfulSpell: false);
+
+                if (targetedEnemy.Level >= player.Level - 4 && !player.IsStealthed && IsSpellReady("Stealth") && targetedEnemy.DistanceSquaredToPlayer < 40 * 40)
+                    return CastAtPlayerLocation("Stealth", isHarmfulSpell: false);
+                if (player.IsBehindTarget(targetedEnemy) && IsSpellReady("Garrote"))
+                    return CastAtTarget("Garrote", facing: SpellFacingFlags.BehindAndFaceTarget);
+                if ((!player.IsBehindTarget(targetedEnemy) || !PlayerLearnedSpell("Garrote")) && IsSpellReady("Cheap Shot"))
+                    return CastAtTarget("Cheap Shot");
+                if (player.IsBehindTarget(targetedEnemy) && IsSpellReady("Ambush") && !PlayerLearnedSpell("Cheap Shot"))
+                    return CastAtTarget("Ambush", facing: SpellFacingFlags.BehindAndFaceTarget);
+            }
+            return CastAtTarget(sb.AutoAttack);
+        }
+
+        public SpellCastInfo? RotationSpell()
+        {
+            var om = ObjectManager.Instance;
+            var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
+            var targetedEnemy = om.AnyEnemy;
+            var player = om.Player;
+            var sb = player.SpellBook;
+            var inv = player.Inventory;
+            var comboPoints = player.SecondaryPower;
+
+            if (player.HasAura("Vanish"))
+                return null;
+            if (player.HealthPercent <= 15 && IsSpellReady("Smoke Bomb"))
+                return CastAtPlayerLocation("Smoke Bomb");
+            if (player.HealthPercent <= 20 && IsSpellReady("Vanish"))
+                return CastAtPlayerLocation("Vanish");
+
+
+            if (player.HealthPercent < 45)
+            {
+                var healthStone = inv.GetHealthstone();
+                if (healthStone != null)
+                    return UseItem(healthStone);
+                var healingPot = inv.GetHealingPotion();
+                if (healingPot != null)
+                    return UseItem(healingPot);
+            }
+
+
+
+            if (player.IsFleeingFromTheFight)
+            {
+                if (IsSpellReady("Evasion") && !player.HasBuff("Evasion"))
+                    return CastAtPlayerLocation("Evasion", isHarmfulSpell: false);
+                if (IsSpellReady("Cloak of Shadows"))
+                    return CastAtPlayerLocation("Cloak of Shadows", isHarmfulSpell: false);
+                return null;
+            }
+
+            if (player.Energy < 20 && IsSpellReady("Adrenaline Rush") && !player.HasBuff("Killing Spree"))
+                return CastAtPlayerLocation("Adrenaline Rush", isHarmfulSpell: false);
+            if (player.Energy < 30 && IsSpellReady("Killing Spree") && player.HasBuff("Deep Insight") && !player.HasBuff("Adrenaline Rush"))
+                return CastAtPlayerLocation("Killing Spree", isHarmfulSpell: false);
+
+            //AoE handling
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
+            if (inCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsCasting) >= 1 && IsSpellReady("Cloak of Shadows"))
+                return CastAtPlayerLocation("Cloak of Shadows", isHarmfulSpell: false);
+            var blindTarget = inCombatEnemies.FirstOrDefault(e => e.IsTargetingPlayer && !e.IsSameAs(player.Target));
+            if (blindTarget != null && IsSpellReady("Blind") && !player.HasBuff("Blade Flurry"))
+                return CastAtUnit(blindTarget, "Blind");
+
+            if (inCombatEnemies.Count > 1)
+            {
+                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 6);
+                if (nearbyEnemies.Count >= 2)
+                {
+                    if (IsSpellReady("Evasion") && !player.HasBuff("Evasion"))
+                        return CastAtPlayerLocation("Evasion", isHarmfulSpell: false);
+                }
+                if (nearbyEnemies.Count(e => e.DistanceSquaredToPlayer < 64 && !e.HasAura("Blind")) > 1)
+                {
+                    if (IsSpellReady("Blade Flurry"))
+                        return CastAtPlayerLocation("Blade Flurry", isHarmfulSpell: false);
+                }
+            }
+
+            //Targeted enemy
+            if (targetedEnemy != null)
+            {
+                if (targetedEnemy.IsCasting && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
+                {
+                    if (IsSpellReady("Kick"))
+                        return CastAtTarget("Kick");
+                }
+                if (player.ComboPoints == 4 && IsSpellReady("Revealing Strike"))
+                    return CastAtTarget("Revealing Strike");
+                if (settings.CombatUseRuptureFinisher && player.ComboPoints >= 4 && targetedEnemy.IsElite && !player.HasBuff("Blade Flurry") && IsSpellReady("Revealing Strike") && !targetedEnemy.HasDeBuff("Rupture"))
+                    return CastAtTarget("Rupture");
+                if (player.ComboPoints > 0 && IsSpellReady("Slice and Dice") && player.AuraRemainingTime("Slice and Dice").TotalSeconds < 3)
+                    return CastAtPlayerLocation("Slice and Dice");
+                if ((player.ComboPoints == 5 || (player.ComboPoints >= 2 && targetedEnemy.HealthPercent < 40)) && IsSpellReady("Eviscerate"))
+                    return CastAtTarget("Eviscerate");
+                if (player.ComboPoints < 4 || !PlayerLearnedSpell("Revealing Strike"))
+                    return CastAtTarget("Sinister Strike");
+                return CastAtTarget(sb.AutoAttack);
+            }
+            return null;
+        }
+    }
+}
