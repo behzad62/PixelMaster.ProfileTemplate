@@ -20,13 +20,13 @@ namespace CombatClasses
     {
         private RogueSettings settings => SettingsManager.Instance.Rogue;
         public short Spec => 2;
-        public UnitClass PlayerClass => UnitClass.Druid;
+        public UnitClass PlayerClass => UnitClass.Rogue;
         // 0 - Melee DPS : Will try to stick to the target
         // 1 - Range: Will try to kite target if it got too close.
         // 2 - Healer: Will try to target party/raid members and get in range to heal them
         // 3 - Tank: Will try to engage nearby enemies who targeting alies
         public CombatRole Role => CombatRole.MeleeDPS;
-        public string Name => "[Cata][PvE]Druid-Feral";
+        public string Name => "[Cata][PvE]Rogue-Combat";
         public string Author => "PixelMaster";
         public string Description => "General PvE";
 
@@ -49,14 +49,23 @@ namespace CombatClasses
                         return CastAtPlayerLocation("Stealth", isHarmfulSpell: false);
                 }
 
-                if(player.IsStealthed && IsSpellReady("Sprint"))
+                if(player.IsStealthed && IsSpellReady("Sprint") && targetedEnemy.DistanceSquaredToPlayer > 35 * 35)
                     return CastAtPlayerLocation("Sprint", isHarmfulSpell: false);
 
                 if (targetedEnemy.Level >= player.Level - 4 && !player.IsStealthed && IsSpellReady("Stealth") && targetedEnemy.DistanceSquaredToPlayer < 40 * 40)
                     return CastAtPlayerLocation("Stealth", isHarmfulSpell: false);
-                if (player.IsBehindTarget(targetedEnemy) && IsSpellReady("Garrote"))
+                if (player.IsStealthed)
+                {
+                    if (targetedEnemy.IsMoving && (targetedEnemy.CreatureType == CreatureType.Beast || targetedEnemy.CreatureType == CreatureType.Humanoid || targetedEnemy.CreatureType == CreatureType.Demon || targetedEnemy.CreatureType == CreatureType.Dragonkin)
+                        && targetedEnemy.DistanceSquaredToPlayer < 10 * 10 && IsSpellReady("Sap"))
+                        return CastAtTarget("Sap");
+                    if (targetedEnemy.IsMoving
+                            && targetedEnemy.DistanceSquaredToPlayer < 20 * 20 && IsSpellReady("Distract"))
+                        return CastAtGround(NavigationHelpers.GetTargetPoint(player.Position, targetedEnemy.DistanceToPlayer + 5, NavigationHelpers.GetTargetVectorYaw(player.Position, targetedEnemy.Position), false), "Distract");
+                }
+                if ((player.IsBehindTarget(targetedEnemy) || targetedEnemy.HasDeBuff("Sap") || !targetedEnemy.IsMoving) && IsSpellReady("Garrote"))
                     return CastAtTarget("Garrote", facing: SpellFacingFlags.BehindAndFaceTarget);
-                if ((!player.IsBehindTarget(targetedEnemy) || !PlayerLearnedSpell("Garrote")) && IsSpellReady("Cheap Shot"))
+                if ((!PlayerLearnedSpell("Garrote") || !player.IsBehindTarget(targetedEnemy)) && IsSpellReady("Cheap Shot"))
                     return CastAtTarget("Cheap Shot");
                 if (player.IsBehindTarget(targetedEnemy) && IsSpellReady("Ambush") && !PlayerLearnedSpell("Cheap Shot"))
                     return CastAtTarget("Ambush", facing: SpellFacingFlags.BehindAndFaceTarget);
@@ -112,7 +121,7 @@ namespace CombatClasses
             List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
             if (inCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsCasting) >= 1 && IsSpellReady("Cloak of Shadows"))
                 return CastAtPlayerLocation("Cloak of Shadows", isHarmfulSpell: false);
-            var blindTarget = inCombatEnemies.FirstOrDefault(e => e.IsTargetingPlayer && !e.IsSameAs(player.Target));
+            var blindTarget = inCombatEnemies.FirstOrDefault(e => e.IsTargetingPlayer && !e.Auras.Any(a=>a.Type == AuraType.Debuff && a.Spell.IsDoT));
             if (blindTarget != null && IsSpellReady("Blind") && !player.HasBuff("Blade Flurry"))
                 return CastAtUnit(blindTarget, "Blind");
 
@@ -134,6 +143,8 @@ namespace CombatClasses
             //Targeted enemy
             if (targetedEnemy != null)
             {
+                if (targetedEnemy.HasAura("Blind"))
+                    return null;
                 if (targetedEnemy.IsCasting && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
                 {
                     if (IsSpellReady("Kick"))
