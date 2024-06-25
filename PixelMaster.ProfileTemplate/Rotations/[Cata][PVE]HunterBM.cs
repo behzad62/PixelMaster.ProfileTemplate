@@ -12,21 +12,23 @@ using System.Collections.Generic;
 using System.Numerics;
 using System;
 using System.Linq;
+using AdvancedCombatClasses.Settings;
 
 namespace CombatClasses
 {
-    public class BMHunter : IPMRotation
+    public class HunterBM : IPMRotation
     {
-        public short Spec => 0;
+        private HunterSettings settings => SettingsManager.Instance.Hunter;
+        public short Spec => 1;
         public UnitClass PlayerClass => UnitClass.Hunter;
         // 0 - Melee DPS : Will try to stick to the target
         // 1 - Range: Will try to kite target if it got too close.
         // 2 - Healer: Will try to target party/raid members and get in range to heal them
         // 3 - Tank: Will try to engage nearby enemies who targeting alies
         public CombatRole Role => CombatRole.RangeDPS;
-        public string Name => "Hunter General PvE";
+        public string Name => "[Cata][PvE]Druid-Feral";
         public string Author => "PixelMaster";
-        public string Description => "";
+        public string Description => "General PvE";
 
         public SpellCastInfo PullSpell()
         {
@@ -105,24 +107,28 @@ namespace CombatClasses
                     return CastAtPlayer("Rapid Fire");
             }
             inCombatEnemies = om.InCombatEnemies;
-            var mendPetAt = !IsClassicEra || inCombatEnemies.Count(e=>e.HealthPercent > 50) > 1 ? 70 : 40;
+            var mendPetAt = !IsClassicEra || inCombatEnemies.Count(e => e.HealthPercent > 50) > 1 ? 70 : 40;
             if (pet != null && !pet.IsDead && (!IsClassicEra || !player.IsMoving) && IsSpellReadyOrCasting("Mend Pet") && (pet.HealthPercent <= mendPetAt || IsSpellCasting("Mend Pet")) && (IsClassicEra || !pet.HasBuff("Mend Pet")))
                 return CastAtPet("Mend Pet");
+
+            if (settings.UseDisengage && !IsClassicEra && inCombatEnemies.Any(e => e.IsTargetingPlayer && e.DistanceSquaredToPlayer < 40) && IsSpellReady("Disengage"))
+                return CastAtPlayerLocation("Disengage", isHarmfulSpell: false);
+
             if (player.HealthPercent < 40)
             {
-                if (inCombatEnemies.Any(e => e.IsInMeleeRange) && IsSpellReady("Aspect of the Monkey"))
+                if (inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer) && IsSpellReady("Aspect of the Monkey"))
                 {
                     if (!player.HasBuff("Aspect of the Monkey"))
                         return CastAtPlayer("Aspect of the Monkey");
                 }
                 else
                 {
-                    if (player.PowerPercent < 40)
+                    if (player.PowerPercent < 30 && inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer))
                     {
-                        if (IsSpellReady("Aspect of the Viper"))
+                        if (IsSpellReady("Aspect of the Fox"))
                         {
-                            if (!player.HasBuff("Aspect of the Viper"))
-                                return CastAtPlayer("Aspect of the Viper");
+                            if (!player.HasBuff("Aspect of the Fox"))
+                                return CastAtPlayer("Aspect of the Fox");
                         }
                         else if (IsSpellReady("Aspect of the Hawk"))
                         {
@@ -145,15 +151,15 @@ namespace CombatClasses
             else
             {
                 if (((player.HealthPercent < 35 && inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer))
-                    || (!PlayerLearnedSpell("Aspect of the Hawk") && !PlayerLearnedSpell("Aspect of the Viper")))
+                    || (!PlayerLearnedSpell("Aspect of the Hawk") && !PlayerLearnedSpell("Aspect of the Fox")))
                     && IsSpellReady("Aspect of the Monkey") && !player.HasBuff("Aspect of the Monkey"))
                     return CastAtPlayer("Aspect of the Monkey");
-                else if (player.PowerPercent < 40)
+                else if (player.PowerPercent < 30 && inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer))
                 {
-                    if (IsSpellReady("Aspect of the Viper"))
+                    if (IsSpellReady("Aspect of the Fox"))
                     {
-                        if (!player.HasBuff("Aspect of the Viper"))
-                            return CastAtPlayer("Aspect of the Viper");
+                        if (!player.HasBuff("Aspect of the Fox"))
+                            return CastAtPlayer("Aspect of the Fox");
                     }
                     else if (IsSpellReady("Aspect of the Hawk"))
                     {
@@ -170,9 +176,35 @@ namespace CombatClasses
             if (IsClassicEra && IsSpellReady("Heart of the Lion") && !player.HasBuff("Heart of the Lion"))
                 return CastAtPlayer("Heart of the Lion");
             //AoE handling
-            var minRange = IsClassicEra ? 8.5f : 5.5f;
+            var minRange = IsClassicEra ? 8f : 5f;
+            minRange += player.CombatReach;
             if (inCombatEnemies.Count > 1)
             {
+                if (PlayerLearnedSpell("Trap Launcher"))
+                {
+                    var trapTarget = inCombatEnemies.Where(e => !e.IsSameAs(player.Target) && (!e.IsMoving || e.IsPlayer) && e.DistanceSquaredToPlayer < 40 * 40).OrderBy(u => u.DistanceSquaredToPlayer).FirstOrDefault();
+                    if (trapTarget != null)
+                    {
+                        if (IsSpellReady("Freezing Trap"))
+                        {
+                            if (player.HasBuff("Trap Launcher"))
+                                return CastAtGround(trapTarget.Position, "Freezing Trap");
+                            else if (IsSpellReady("Trap Launcher"))
+                                return CastAtPlayerLocation("Trap Launcher", isHarmfulSpell: false);
+                        }
+                    }
+                    trapTarget = inCombatEnemies.Where(e => (!e.IsMoving || e.IsPlayer) && e.DistanceSquaredToPlayer < 40 * 40 && e.GetNearbyInCombatEnemies(6).Count >= 2).OrderBy(u => u.DistanceSquaredToPlayer).FirstOrDefault();
+                    if (trapTarget != null)
+                    {
+                        if (IsSpellReady("Explosive Trap"))
+                        {
+                            if (player.HasBuff("Trap Launcher"))
+                                return CastAtGround(trapTarget.Position, "Explosive Trap");
+                            else if (IsSpellReady("Trap Launcher"))
+                                return CastAtPlayerLocation("Trap Launcher", isHarmfulSpell: false);
+                        }
+                    }
+                }
                 var ccCandidates = inCombatEnemies.Where(e => e.DistanceSquaredToPlayer > 64 && e.HealthPercent > 25 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
                 foreach (var ccCandidate in ccCandidates)
                 {
@@ -193,18 +225,20 @@ namespace CombatClasses
                     return CastAtGround(LastGroundSpellLocation, "Volley");
                 else if (IsSpellReady("Volley"))
                 {
-                    var AoELocation = GetBestAoELocation(inCombatEnemies, 8f, out int numEnemiesInAoE);
+                    var AoELocation = GetBestAoELocation(inCombatEnemies.Where(e => !e.IsTargetingPlayer), 8f, out int numEnemiesInAoE);
                     if (numEnemiesInAoE > 3)
                         return CastAtGround(AoELocation, "Volley");
                 }
-                if (dynamicSettings.AllowBurstOnMultipleEnemies && inCombatEnemies.Count > 2)
+                if (inCombatEnemies.Count(e => e.IsTargetingPlayer || e.IsTargetingPlayerPet) >= 2)
                 {
-                    if (IsSpellReady("Bestial Wrath") && !player.HasBuff("Bestial Wrath"))
-                        return CastAtPlayer("Bestial Wrath");
-                    if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
-                        return CastAtPlayer("Berserking");
-                    if (IsSpellReady("Rapid Fire"))
+                    if (IsSpellReady("Rapid Fire") && (player.HasBuff("Call of the Wild") || !sb.PetSpells.Any(s => s.Name == "Call of the Wild" && s.GetCooldown().TotalSeconds < 60)) && !player.HasBuff("Bloodlust") && !player.HasBuff("Heroism") && !player.HasBuff("Time Warp") && !player.HasBuff("The Beast Within"))
                         return CastAtPlayer("Rapid Fire");
+                    if (player.PowerPercent <= 50 && (pet is null || player.PetStatus == PetStatus.Dead || pet.PowerPercent <= 50) && IsSpellReady("Fervor"))
+                        return CastAtPlayerLocation("Fervor", isHarmfulSpell: false);
+                    if (IsSpellReady("Bestial Wrath") && !player.HasBuff("Bestial Wrath") && (!PlayerLearnedSpell("Kill Command") || GetSpellCooldown("Kill Command").TotalSeconds < 2))
+                        return CastAtPlayerLocation("Bestial Wrath", isHarmfulSpell: false);
+                    if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
+                        return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
                 }
             }
             if (IsSpellReady("Kill Command"))
@@ -215,8 +249,26 @@ namespace CombatClasses
             {
                 if (targetedEnemy.DistanceSquaredToPlayer > minRange * minRange)
                 {
-                    if (targetedEnemy.IsMoving && !targetedEnemy.HasDeBuff("Wing Clip") && IsSpellReady("Concussive Shot") && targetedEnemy.IsInCombatWithPlayer)
+                    if (targetedEnemy.IsCasting)
+                    {
+                        if (IsSpellReady("Silencing Shot"))
+                            return CastAtTarget("Silencing Shot");
+                        if (IsSpellReady("Scatter Shot") && targetedEnemy.DistanceSquaredToPlayer <= 20 * 20)
+                            return CastAtTarget("Scatter Shot");
+                        if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
+                            return CastAtPlayerLocation("War Stomp");
+                        if (pet != null && targetedEnemy.IsSameAs(pet.Target) && IsSpellReady("Intimidation"))
+                            return CastAtTarget("Intimidation");
+                    }
+                    if (targetedEnemy.IsMoving && !targetedEnemy.HasDeBuff("Wing Clip") && IsSpellReady("Concussive Shot") && targetedEnemy.IsInCombatWithPlayer && targetedEnemy.IsTargetingPlayer)
                         return CastAtTarget("Concussive Shot");
+                    if (!targetedEnemy.IsInCombat)
+                    {
+                        if (IsSpellReady("Serpent Sting"))
+                            return CastAtTarget("Serpent Sting");
+                        if (IsSpellReady("Arcane Shot"))
+                            return CastAtTarget("Arcane Shot");
+                    }
                     if (IsSpellReady("Hunter's Mark") && !targetedEnemy.HasDeBuff("Hunter's Mark"))
                         return CastAtTarget("Hunter's Mark");
                     if (targetedEnemy.HealthPercent <= 20)
@@ -224,7 +276,13 @@ namespace CombatClasses
                         if (IsSpellReady("Kill Shot"))
                             return CastAtTarget("Kill Shot");
                     }
-                    if (IsSpellReady("Arcane Shot") && player.IsMoving)
+                    if ((targetedEnemy.IsTargetingPlayer || targetedEnemy.Target is null) && pet != null && IsSpellReady("Intimidation"))
+                        return CastAtTarget("Intimidation");
+                    if (player.HasActivePet && IsSpellReady("Kill Command") && pet != null && Vector3.DistanceSquared(pet.Position, targetedEnemy.Position) < 25)
+                        return CastAtTarget("Kill Command");
+                    if (pet != null && pet.AuraStacks("Frenzy Effect") >= 5 && !player.HasBuff("The Beast Within") && IsSpellReady("Focus Fire"))
+                        return CastAtPlayerLocation("Focus Fire", isHarmfulSpell: false);
+                    if (player.IsMoving && IsSpellReady("Arcane Shot"))
                         return CastAtTarget("Arcane Shot");
                     if (IsClassicEra)
                     {
@@ -233,7 +291,7 @@ namespace CombatClasses
                         if (IsSpellReady("Chimera Shot") && (targetedEnemy.HasDeBuff("Serpent Sting") || targetedEnemy.HasDeBuff("Scorpid Sting") || targetedEnemy.HasDeBuff("Viper Sting")))
                             return CastAtTarget("Chimera Shot");
                     }
-                    else if (player.Level < 50 && player.PowerPercent > 50 && targetedEnemy.HealthPercent > 60
+                    else if (player.PowerPercent > 50 && targetedEnemy.HealthPercent > 60
                         && IsSpellReady("Serpent Sting") && !targetedEnemy.HasDeBuff("Serpent Sting"))
                         return CastAtTarget("Serpent Sting");
                     if (!targetedEnemy.IsTargetingPlayer && player.Level < 50 && player.PowerPercent > 50
@@ -241,20 +299,36 @@ namespace CombatClasses
                         return CastAtTarget("Aimed Shot");
                     if (IsClassicEra && !player.IsMoving && IsSpellReadyOrCasting("Multi-Shot"))
                         return CastAtTarget("Multi-Shot");
-                    if (player.Level < 50 && player.PowerPercent > 50 && IsSpellReady("Arcane Shot"))
+                    if (player.PowerPercent > 40 && IsSpellReady("Arcane Shot"))
                         return CastAtTarget("Arcane Shot");
-                    if (!player.IsMoving && IsSpellReadyOrCasting("Steady Shot"))
-                        return CastAtTarget("Steady Shot");
+                    if (!player.IsMoving || player.HasBuff("Aspect of the Fox"))
+                    {
+                        if (IsSpellReadyOrCasting("Cobra Shot"))
+                            return CastAtTarget("Cobra Shot");
+                        if (!PlayerLearnedSpell("Cobra Shot") && IsSpellReadyOrCasting("Steady Shot"))
+                            return CastAtTarget("Steady Shot");
+                    }
                     return CastAtTarget("Auto Shot");
                 }
                 else
                 {
+                    if (targetedEnemy.IsCasting)
+                    {
+                        if (IsSpellReady("Scatter Shot") && targetedEnemy.DistanceSquaredToPlayer <= 20 * 20)
+                            return CastAtTarget("Scatter Shot");
+                        if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
+                            return CastAtPlayerLocation("War Stomp");
+                        if (pet != null && targetedEnemy.IsSameAs(pet.Target) && IsSpellReady("Intimidation"))
+                            return CastAtTarget("Intimidation");
+                    }
                     if (player.HasActivePet && targetedEnemy.IsTargetingPlayer && IsSpellReady("Feign Death"))
                         return CastAtPlayer("Feign Death");
                     if (targetedEnemy.IsTargetingPlayer && IsSpellReady("Scatter Shot"))
                         return CastAtTarget("Scatter Shot");
                     if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp"))
                         return CastAtPlayerLocation("War Stomp");
+                    if (player.HasActivePet && IsSpellReady("Kill Command") && pet != null && Vector3.DistanceSquared(pet.Position, targetedEnemy.Position) < 25)
+                        return CastAtTarget("Kill Command");
                     if (targetedEnemy.IsInMeleeRange)
                     {
                         if (IsClassicEra && IsSpellReady("Flanking Strike"))
