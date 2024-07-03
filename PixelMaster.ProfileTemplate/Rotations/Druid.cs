@@ -135,7 +135,7 @@ namespace CombatClasses
             var player = om.Player;
             var sb = player.SpellBook;
             var inv = player.Inventory;
-            var comboPoints = player.SecondaryPower;
+            var comboPoints = player.ComboPoints;
             var rage = player.PowerPercent;
             //Debugger.Log(1, "","Rage " + rage);
             List<WowUnit>? inCombatEnemies = null;

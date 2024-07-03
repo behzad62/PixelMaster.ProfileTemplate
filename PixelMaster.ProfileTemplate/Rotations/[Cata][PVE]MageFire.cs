@@ -60,7 +60,7 @@ namespace CombatClasses
             // Defensive stuff
             if (player.HasAura("Ice Block"))
                 return null;
-            if(!player.HasAura("Molten Armor"))
+            if(!player.HasAura("Molten Armor") && IsSpellReady("Molten Armor"))
                 return CastAtPlayerLocation("Molten Armor", isHarmfulSpell: false);
             if (player.HealthPercent < 20 && !player.HasAura("Hypothermia") && IsSpellReady("Ice Block"))
                 return CastAtPlayerLocation("Ice Block", isHarmfulSpell: false);
