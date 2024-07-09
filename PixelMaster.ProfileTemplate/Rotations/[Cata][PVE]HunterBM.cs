@@ -26,7 +26,7 @@ namespace CombatClasses
         // 2 - Healer: Will try to target party/raid members and get in range to heal them
         // 3 - Tank: Will try to engage nearby enemies who targeting alies
         public CombatRole Role => CombatRole.RangeDPS;
-        public string Name => "[Cata][PvE]Druid-Feral";
+        public string Name => "[Cata][PvE]Hunter-BM";
         public string Author => "PixelMaster";
         public string Description => "General PvE";
 
@@ -327,7 +327,7 @@ namespace CombatClasses
                         return CastAtTarget("Scatter Shot");
                     if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp"))
                         return CastAtPlayerLocation("War Stomp");
-                    if (player.HasActivePet && IsSpellReady("Kill Command") && pet != null && Vector3.DistanceSquared(pet.Position, targetedEnemy.Position) < 25)
+                    if (player.HasActivePet && pet != null && !pet.IsDead && IsSpellReady("Kill Command") && pet != null && Vector3.DistanceSquared(pet.Position, targetedEnemy.Position) < 25)
                         return CastAtTarget("Kill Command");
                     if (targetedEnemy.IsInMeleeRange)
                     {
