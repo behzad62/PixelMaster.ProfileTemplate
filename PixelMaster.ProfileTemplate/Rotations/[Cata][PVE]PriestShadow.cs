@@ -63,11 +63,12 @@ namespace CombatClasses
             var comboPoints = player.SecondaryPower;
             List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
 
-            if ((player.HealthPercent < settings.ShieldHealthPercent || !PlayerLearnedSpell("Mind Spike")) && !player.HasAura("Weakened Soul") && IsSpellReady("Power Word: Shield"))
+            if (!player.IsCasting && (player.HealthPercent < settings.ShieldHealthPercent || !PlayerLearnedSpell("Mind Spike") || inCombatEnemies.Count(e=>e.IsTargetingPlayer && e.IsInMeleeRange) >= 2) && !player.HasAura("Weakened Soul") && IsSpellReady("Power Word: Shield"))
                 return CastAtPlayer("Power Word: Shield");
-            if (player.PowerPercent < settings.DispersionMana && IsSpellReady("Dispersion"))
+            if (!player.IsCasting && player.PowerPercent < settings.DispersionMana && IsSpellReady("Dispersion"))
                 return CastAtPlayer("Dispersion");
-
+            if ((player.PowerPercent < settings.HymnofHopeMana || IsSpellCasting("Hymn of Hope")) && IsSpellReadyOrCasting("Hymn of Hope"))
+                return CastAtPlayer("Hymn of Hope");
             if (settings.UsePsychicScream && GetUnitsWithinArea(inCombatEnemies, player.Position, 10).Count >= settings.PsychicScreamAddCount && IsSpellReady("Psychic Scream"))
                 return CastAtPlayerLocation("Psychic Scream");
             if (player.HealthPercent < settings.ShadowFlashHealHealth && IsSpellReadyOrCasting("Flash Heal"))
@@ -77,13 +78,16 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (!player.HasAura("Shadowform") && IsSpellReady("Shadowform"))
                 return CastAtPlayerLocation("Shadowform", isHarmfulSpell: false);
-            if (targetedEnemy != null && (targetedEnemy.HealthPercent >= 60 || targetedEnemy.IsElite) && player.PowerPercent <= settings.ShadowfiendMana && IsSpellReady("Shadowfiend"))
+            if (!player.IsCasting && targetedEnemy != null && (targetedEnemy.HealthPercent >= 60 || targetedEnemy.IsElite) && player.PowerPercent <= settings.ShadowfiendMana && IsSpellReady("Shadowfiend"))
                 return CastAtTarget("Shadowfiend");
             if (player.IsFleeingFromTheFight)
             {
@@ -106,13 +110,50 @@ namespace CombatClasses
             //AoE handling
             if (inCombatEnemies.Count > 1)
             {
-                if ((inCombatEnemies.Count(u => u.IsTargetingPlayer || u.IsTargetingPlayerPet) >= 2 || (targetedEnemy?.IsElite ?? false)) && IsSpellReady("Archangel"))
+                if (!player.IsCasting && (inCombatEnemies.Count(u => u.IsTargetingPlayer || u.IsTargetingPlayerPet) >= 2 || (targetedEnemy?.IsElite ?? false)) && IsSpellReady("Archangel"))
                     return CastAtTarget("Archangel");
-
-                //if (dynamicSettings.AllowBurstOnMultipleEnemies && inCombatEnemies.Count > 2)
-                //{
-
-                //}
+                if (IsSpellCasting("Mind Sear") && targetedEnemy != null)
+                    return CastAtTarget("Mind Sear");
+                if (IsSpellReady("Mind Sear"))
+                {
+                    var mindSearTarget = inCombatEnemies.Where(e => e.GetNearbyInCombatEnemies(10).Count >= 5).FirstOrDefault();
+                    if (mindSearTarget != null)
+                    {
+                        return CastAtUnit(mindSearTarget, "Mind Sear");
+                    }
+                }
+                if (!player.IsCasting && IsSpellReady("Devouring Plague") && !inCombatEnemies.Any(e => e.HasDeBuff("Devouring Plague")))
+                {
+                    inCombatEnemies.Sort((t1, t2) => t2.Health.CompareTo(t1.Health));
+                    var multiDotTarget = inCombatEnemies[0];
+                    return CastAtUnit(multiDotTarget, "Devouring Plague");
+                }
+                if (!player.IsCasting && IsSpellReady("Shadow Word: Pain"))
+                {
+                    var multiDotTargets = inCombatEnemies.Where(e => e.HealthPercent > 20 && !e.HasDeBuff("Shadow Word: Pain")).ToList();
+                    multiDotTargets.Sort((t1, t2) => t2.Health.CompareTo(t1.Health));
+                    var multiDotTarget = multiDotTargets.FirstOrDefault();
+                    if (multiDotTarget != null)
+                        return CastAtUnit(multiDotTarget, "Shadow Word: Pain");
+                }
+                if (!player.IsCasting && IsSpellReady("Vampiric Touch"))
+                {
+                    var multiDotTargets = inCombatEnemies.Where(e => e.HealthPercent > 20 && !e.HasDeBuff("Vampiric Touch")).ToList();
+                    multiDotTargets.Sort((t1, t2) => t2.Health.CompareTo(t1.Health));
+                    var multiDotTarget = multiDotTargets.FirstOrDefault();
+                    if (multiDotTarget != null)
+                        return CastAtUnit(multiDotTarget, "Vampiric Touch");
+                }
+                if (targetedEnemy != null && (player.HasAura("Shadow Orb") || player.AuraStacks("Mind Melt", true) >= 2) && IsSpellReadyOrCasting("Mind Blast"))
+                    return CastAtTarget("Mind Blast");
+                if (player.HasAura("Pain and Suffering") && IsSpellReadyOrCasting("Mind Flay"))
+                {
+                    var multiDotTargets = inCombatEnemies.Where(e => e.HealthPercent > 20 && e.HasDeBuff("Shadow Word: Pain") && e.AuraRemainingTime("Shadow Word: Pain").TotalSeconds < 6).ToList();
+                    multiDotTargets.Sort((t1, t2) => t2.Health.CompareTo(t1.Health));
+                    var multiDotTarget = multiDotTargets.FirstOrDefault();
+                    if (multiDotTarget != null)
+                        return CastAtUnit(multiDotTarget, "Mind Flay");
+                }
             }
 
             //Targeted enemy

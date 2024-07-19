@@ -63,9 +63,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.PowerPercent < 15)
             {
@@ -123,8 +126,13 @@ namespace CombatClasses
                     }
                     if(targetedEnemy != null && IsSpellReady("Force of Nature") && player.HasAura("Eclipse (Solar)", true))
                         return CastAtGround(targetedEnemy.Position, "Force of Nature");
-                    if (settings.UseStarfall && IsSpellReadyOrCasting("Starfall") && player.HasAura("Eclipse (Lunar)", true))
+                    if (IsSpellReady("Thorns") && !player.HasBuff("Thorns"))
+                        return CastAtPlayerLocation("Thorns");
+                    if (settings.UseStarfall && IsSpellReadyOrCasting("Starfall") && (inCombatEnemies.Count > 5 || player.HasAura("Eclipse (Lunar)", true)))
                         return CastPetAbilityAtPlayer("Starfall");
+                    var inFrontCone = GetUnitsInFrontOfPlayer(inCombatEnemies, 45, 30);
+                    if ((inFrontCone.Count >= 3 && player.HasAura("Eclipse (Solar)") || inFrontCone.Count >= 5) && IsSpellReady("Typhoon"))
+                        return CastAtPlayerLocation("Typhoon");
                     var moonFireTarget = nearbyEnemies.Where(e=>!IsCrowdControlled(e) && !e.HasAura("Moonfire", true) && !e.HasAura("Sunfire", true)).FirstOrDefault();
                     if (moonFireTarget != null && IsSpellReady("Moonfire"))
                         return CastAtUnit(moonFireTarget, "Moonfire");

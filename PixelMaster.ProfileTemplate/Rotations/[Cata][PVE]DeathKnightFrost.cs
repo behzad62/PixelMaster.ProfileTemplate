@@ -73,7 +73,7 @@ namespace CombatClasses
 
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
-                UseAntiMagicShell))
+                UseAntiMagicShell) && IsSpellReady("Anti-Magic Shell"))
                 return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
             //if (!player.HasActivePet && IsSpellReady("Raise Dead"))
             //    return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
@@ -89,9 +89,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.IsFleeingFromTheFight)
             {
@@ -126,7 +129,6 @@ namespace CombatClasses
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 12);
                 if (nearbyEnemies.Count >= DeathAndDecayCount)
                 {
-
                     if (targetedEnemy != null
                         && (player.FrostRuneCount == 2 || player.DeathRuneCount == 2)
                         && IsSpellReady("Howling Blast"))
@@ -135,6 +137,8 @@ namespace CombatClasses
                         return CastAtTarget("Plague Strike");
                     if (targetedEnemy != null && player.Power == player.MaxPower && IsSpellReady("Frost Strike"))
                         return CastAtTarget("Frost Strike");
+                    if (IsSpellReadyOrCasting("Hungering Cold"))
+                        return CastAtPlayerLocation("Hungering Cold");
                     if (IsSpellReady("Horn of Winter"))
                         return CastAtPlayerLocation("Horn of Winter");
                     //if (om.PlayerPet != null && !om.PlayerPet.IsDead && !om.PlayerPet.HasAura("Dark Transformation") && IsSpellReady("Dark Transformation"))

@@ -78,9 +78,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
 
 
@@ -107,6 +110,8 @@ namespace CombatClasses
                         return CastAtPlayerLocation("Sweeping Strikes", isHarmfulSpell:false);
                     if (settings.UseWarriorBladestorm && IsSpellReadyOrCasting("Bladestorm"))
                         return CastAtPlayerLocation("Bladestorm");
+                    if (inCombatEnemies.Count(u => u.DistanceSquaredToPlayer <= 64 && !u.HasDeBuff("Thunder Clap")) > 3 && IsSpellReady("Thunder Clap"))
+                        return CastAtPlayerLocation("Thunder Clap");
                     if (targetedEnemy != null && IsSpellReady("Cleave"))
                         return CastAtTarget("Cleave");
                     if (targetedEnemy != null && IsSpellReady("Mortal Strike"))

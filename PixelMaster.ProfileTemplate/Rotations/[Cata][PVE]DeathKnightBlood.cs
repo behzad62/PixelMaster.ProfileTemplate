@@ -86,7 +86,7 @@ namespace CombatClasses
                 return CastAtPlayer("Blood Presence");
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
-                UseAntiMagicShell))
+                UseAntiMagicShell) && IsSpellReady("Anti-Magic Shell"))
                 return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
             if (player.HealthPercent < PetSacrificePercent && player.HasActivePet && IsSpellReady("Death Pact"))
                 return CastAtPlayer("Death Pact");
@@ -95,7 +95,7 @@ namespace CombatClasses
             if (player.HealthPercent < 70 && player.HasAura("Lichborne") && IsSpellReady("Death Coil"))
                 return CastAtPlayer("Death Coil");
             if (UseDancingRuneWeapon && inCombatEnemies.Count > 2 && IsSpellReady("Dancing Rune Weapon"))
-                return CastAtPlayerLocation("Dancing Rune Weapo");
+                return CastAtTarget("Dancing Rune Weapon");
             if (UseBoneShield
                 && (!BoneShieldExclusive && player.HealthPercent < BoneShieldPercent
                 || (!player.HasAura("Vampiric Blood") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Lichborne") && !player.HasAura("Icebound Fortitude")))
@@ -127,9 +127,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.IsFleeingFromTheFight)
             {

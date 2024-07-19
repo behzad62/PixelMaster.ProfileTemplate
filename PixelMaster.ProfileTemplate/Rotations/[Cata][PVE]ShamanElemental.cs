@@ -67,9 +67,17 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
+            }
+            if (!om.CurrentMap.IsDungeon && player.Debuffs.Any(d => d.Spell != null && d.Spell.DispelType == SpellDispelType.Curse))
+            {
+                if (IsSpellReady("Cleanse Spirit"))
+                    return CastAtPlayer("Cleanse Spirit");
             }
             if (player.IsFleeingFromTheFight)
             {
@@ -79,11 +87,15 @@ namespace CombatClasses
                     return CastAtPlayerLocation("Stoneclaw Totem");
                 return null;
             }
-            if (settings.ElementalHeal && player.HealthPercent < 60)
+            if (settings.ElementalHeal)
             {
-                if (!PlayerLearnedSpell("Healing Surge") && IsSpellReadyOrCasting("Healing Wave"))
+                if ((player.HealthPercent < 30 || IsSpellCasting("Healing Surge")) && IsSpellReadyOrCasting("Healing Surge") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 8)
+                    return CastAtPlayer("Healing Surge");
+                if ((player.HealthPercent < 40 || IsSpellCasting("Greater Healing Wave")) && IsSpellReadyOrCasting("Greater Healing Wave") && !IsSpellCasting("Healing Wave") && !IsSpellCasting("Healing Surge") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 2)
+                    return CastAtPlayer("Greater Healing Wave");
+                if (!PlayerLearnedSpell("Healing Surge") && (player.HealthPercent < 50 || IsSpellCasting("Healing Wave")) && IsSpellReadyOrCasting("Healing Wave") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 2)
                     return CastAtPlayer("Healing Wave");
-                if (IsSpellReadyOrCasting("Healing Surge"))
+                if ((player.HealthPercent < 50 || IsSpellCasting("Healing Surge")) && IsSpellReadyOrCasting("Healing Surge") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 3)
                     return CastAtPlayer("Healing Surge");
             }
 
@@ -100,21 +112,24 @@ namespace CombatClasses
                 {
                     if (IsSpellReady("Elemental Mastery"))
                         return CastAtPlayerLocation("Elemental Mastery", isHarmfulSpell: false);
+                    if (IsSpellReady("Earthbind Totem") && !om.PlayerTotems.Any(t => t.Name == "Earthbind Totem" && t.DistanceSquaredToPlayer < 100))
+                        return CastAtPlayerLocation("Earthbind Totem", isHarmfulSpell: false);
                     if (IsSpellReady("Thunderstorm"))
                         return CastAtPlayerLocation("Thunderstorm", isHarmfulSpell: true);
                 }
                 nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 40);
                 if (nearbyEnemies.Count >= 3)
                 {
-                    if (IsSpellReady("Chain Lightning"))
+                    if (nearbyEnemies.Count() >= 10 && IsSpellReady("Fire Elemental Totem"))
+                        return CastAtPlayerLocation("Fire Elemental Totem");
+                    if (!player.IsCasting && IsSpellReady("Wrath of Air Totem") && !player.HasAura("Wrath of Air Totem"))
+                        return CastAtPlayerLocation("Wrath of Air Totem", isHarmfulSpell: false);
+                    if (!player.IsCasting && IsSpellReady("Flame Shock"))
                     {
-                        var bestChainTarget = GetBestUnitForChainedSpell(inCombatEnemies, 12, 3, false, out var numHits);
-                        if (numHits >= 3)
-                            return CastAtUnit(bestChainTarget, "Chain Lightning");
+                        var flameTarget = nearbyEnemies.FirstOrDefault(e => !e.HasAura("Flame Shock", true));
+                        if (flameTarget != null)
+                            return CastAtUnit(flameTarget, "Flame Shock");
                     }
-                    else if (IsSpellCasting("Chain Lightning"))
-                        return CastAtTarget("Chain Lightning");
-
                     if (IsSpellReady("Earthquake"))
                     {
                         var AoELocation = GetBestAoELocation(inCombatEnemies, 10f, out int numEnemiesInAoE);
@@ -135,17 +150,23 @@ namespace CombatClasses
                     if (IsSpellReady("Wind Shear") && targetedEnemy.DistanceSquaredToPlayer < 25 * 25)
                         return CastAtTarget("Wind Shear");
                 }
-                if (targetedEnemy.IsElite && IsSpellReady("Fire Elemental Totem"))
-                    return CastAtPlayerLocation("Fire Elemental Totem", isHarmfulSpell: true);
 
-                if (targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => (t.Name == "Searing Totem" && Vector3.DistanceSquared(t.Position, targetedEnemy.Position) < 35 * 35) || t.Name == "Fire Elemental Totem"))
+                if (!player.IsCasting && targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => (t.Name == "Searing Totem" && Vector3.DistanceSquared(t.Position, targetedEnemy.Position) < 35 * 35) || t.Name == "Fire Elemental Totem"))
                     return CastAtPlayerLocation("Searing Totem", isHarmfulSpell: true);
-                if (!targetedEnemy.HasAura("Flame Shock", true) && IsSpellReady("Flame Shock"))
+                if (!player.IsCasting && !targetedEnemy.HasAura("Flame Shock", true) && IsSpellReady("Flame Shock"))
                     return CastAtTarget("Flame Shock");
                 if (IsSpellReadyOrCasting("Lava Burst"))
                     return CastAtTarget("Lava Burst");
-                if (IsSpellReady("Earth Shock") && player.AuraStacks("Lightning Shield") >= 7 && targetedEnemy.AuraRemainingTime("Flame Shock", true).TotalSeconds >= 6)
+                if (!player.IsCasting && IsSpellReady("Earth Shock") && player.AuraStacks("Lightning Shield") >= 7 && targetedEnemy.AuraRemainingTime("Flame Shock", true).TotalSeconds >= 6)
                     return CastAtTarget("Earth Shock");
+                if (IsSpellReady("Chain Lightning"))
+                {
+                    var bestChainTarget = GetBestUnitForChainedSpell(inCombatEnemies, 12, 3, false, out var numHits);
+                    if (numHits >= 3)
+                        return CastAtUnit(bestChainTarget, "Chain Lightning");
+                }
+                else if (IsSpellCasting("Chain Lightning"))
+                    return CastAtTarget("Chain Lightning");
                 if (player.IsMoving && !player.HasAura("Spiritwalker's Grace") && IsSpellReady("Unleash Elements") && player.HasAura("Flametongue Weapon"))
                     return CastAtTarget("Unleash Elements");
                 if (GetUnitsWithinArea(inCombatEnemies, targetedEnemy.Position, 10).Count >= 2 && IsSpellReadyOrCasting("Chain Lightning"))

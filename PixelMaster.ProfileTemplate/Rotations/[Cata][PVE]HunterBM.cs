@@ -73,9 +73,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.IsFleeingFromTheFight)
             {
@@ -180,20 +183,29 @@ namespace CombatClasses
             minRange += player.CombatReach;
             if (inCombatEnemies.Count > 1)
             {
+                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
+                if (nearbyEnemies.Count > 4)
+                {
+                    if (!player.HasBuff("Trap Launcher") && IsSpellReady("Explosive Trap"))
+                        return CastAtPlayerLocation("Explosive Trap");
+                }
                 if (PlayerLearnedSpell("Trap Launcher"))
                 {
-                    var trapTarget = inCombatEnemies.Where(e => !e.IsSameAs(player.Target) && (!e.IsMoving || e.IsPlayer) && e.DistanceSquaredToPlayer < 40 * 40).OrderBy(u => u.DistanceSquaredToPlayer).FirstOrDefault();
-                    if (trapTarget != null)
+                    if (inCombatEnemies.Count <= 4)
                     {
-                        if (IsSpellReady("Freezing Trap"))
+                        var freezeTarget = inCombatEnemies.Where(e => !e.IsSameAs(player.Target) && (!e.IsMoving || e.IsPlayer) && e.DistanceSquaredToPlayer < 40 * 40).OrderBy(u => u.DistanceSquaredToPlayer).FirstOrDefault();
+                        if (freezeTarget != null)
                         {
-                            if (player.HasBuff("Trap Launcher"))
-                                return CastAtGround(trapTarget.Position, "Freezing Trap");
-                            else if (IsSpellReady("Trap Launcher"))
-                                return CastAtPlayerLocation("Trap Launcher", isHarmfulSpell: false);
+                            if (IsSpellReady("Freezing Trap"))
+                            {
+                                if (player.HasBuff("Trap Launcher"))
+                                    return CastAtGround(freezeTarget.Position, "Freezing Trap");
+                                else if (IsSpellReady("Trap Launcher"))
+                                    return CastAtPlayerLocation("Trap Launcher", isHarmfulSpell: false);
+                            }
                         }
                     }
-                    trapTarget = inCombatEnemies.Where(e => (!e.IsMoving || e.IsPlayer) && e.DistanceSquaredToPlayer < 40 * 40 && e.GetNearbyInCombatEnemies(6).Count >= 2).OrderBy(u => u.DistanceSquaredToPlayer).FirstOrDefault();
+                    var trapTarget = inCombatEnemies.Where(e => (!e.IsMoving || e.IsPlayer) && e.DistanceSquaredToPlayer < 40 * 40 && e.GetNearbyInCombatEnemies(6).Count >= 2).OrderBy(u => u.DistanceSquaredToPlayer).FirstOrDefault();
                     if (trapTarget != null)
                     {
                         if (IsSpellReady("Explosive Trap"))
@@ -204,18 +216,35 @@ namespace CombatClasses
                                 return CastAtPlayerLocation("Trap Launcher", isHarmfulSpell: false);
                         }
                     }
+                    else if (player.HasBuff("Trap Launcher"))
+                    {
+                        return CastAtGround(inCombatEnemies[0].Position, "Explosive Trap");
+                    }
                 }
-                var ccCandidates = inCombatEnemies.Where(e => e.DistanceSquaredToPlayer > 64 && e.HealthPercent > 25 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
-                foreach (var ccCandidate in ccCandidates)
+                if (IsSpellReady("Freezing Arrow"))
                 {
-                    if (IsSpellReady("Freezing Arrow") && !ccCandidate.HasDeBuff("Freezing Arrow"))
-                        return CastAtUnit(ccCandidate, "Freezing Arrow");
+                    var ccCandidates = inCombatEnemies.Where(e => e.DistanceSquaredToPlayer > 64 && e.HealthPercent > 25 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
+                    foreach (var ccCandidate in ccCandidates)
+                    {
+                        if (!ccCandidate.HasDeBuff("Freezing Arrow"))
+                            return CastAtUnit(ccCandidate, "Freezing Arrow");
+                    }
                 }
-                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
                 if (nearbyEnemies.Count > 2)
                 {
-                    if (IsSpellReady("Explosive Trap"))
+                    if (!player.HasBuff("Trap Launcher") && IsSpellReady("Explosive Trap"))
                         return CastAtPlayerLocation("Explosive Trap");
+                }
+                if (inCombatEnemies.Count(e => e.IsTargetingPlayer || e.IsTargetingPlayerPet) >= 2)
+                {
+                    if (IsSpellReady("Rapid Fire") && (player.HasBuff("Call of the Wild") || !sb.PetSpells.Any(s => s.Name == "Call of the Wild" && s.GetCooldown().TotalSeconds < 60)) && !player.HasBuff("Bloodlust") && !player.HasBuff("Heroism") && !player.HasBuff("Time Warp") && !player.HasBuff("The Beast Within"))
+                        return CastAtPlayer("Rapid Fire");
+                    if (player.PowerPercent <= 50 && (pet is null || player.PetStatus == PetStatus.Dead || pet.PowerPercent <= 50) && IsSpellReady("Fervor"))
+                        return CastAtPlayerLocation("Fervor", isHarmfulSpell: false);
+                    if (IsSpellReady("Bestial Wrath") && !player.HasBuff("Bestial Wrath") && (!PlayerLearnedSpell("Kill Command") || GetSpellCooldown("Kill Command").TotalSeconds < 2))
+                        return CastAtPlayerLocation("Bestial Wrath", isHarmfulSpell: false);
+                    if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
+                        return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
                 }
                 if (targetedEnemy != null && targetedEnemy.DistanceSquaredToPlayer > minRange * minRange && targetedEnemy.GetNearbyInCombatEnemies(6).Count > 0 && IsSpellReadyOrCasting("Multi-Shot"))
                     return CastAtTarget("Multi-Shot");
@@ -228,17 +257,6 @@ namespace CombatClasses
                     var AoELocation = GetBestAoELocation(inCombatEnemies.Where(e => !e.IsTargetingPlayer), 8f, out int numEnemiesInAoE);
                     if (numEnemiesInAoE > 3)
                         return CastAtGround(AoELocation, "Volley");
-                }
-                if (inCombatEnemies.Count(e => e.IsTargetingPlayer || e.IsTargetingPlayerPet) >= 2)
-                {
-                    if (IsSpellReady("Rapid Fire") && (player.HasBuff("Call of the Wild") || !sb.PetSpells.Any(s => s.Name == "Call of the Wild" && s.GetCooldown().TotalSeconds < 60)) && !player.HasBuff("Bloodlust") && !player.HasBuff("Heroism") && !player.HasBuff("Time Warp") && !player.HasBuff("The Beast Within"))
-                        return CastAtPlayer("Rapid Fire");
-                    if (player.PowerPercent <= 50 && (pet is null || player.PetStatus == PetStatus.Dead || pet.PowerPercent <= 50) && IsSpellReady("Fervor"))
-                        return CastAtPlayerLocation("Fervor", isHarmfulSpell: false);
-                    if (IsSpellReady("Bestial Wrath") && !player.HasBuff("Bestial Wrath") && (!PlayerLearnedSpell("Kill Command") || GetSpellCooldown("Kill Command").TotalSeconds < 2))
-                        return CastAtPlayerLocation("Bestial Wrath", isHarmfulSpell: false);
-                    if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
-                        return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
                 }
             }
             if (IsSpellReady("Kill Command"))

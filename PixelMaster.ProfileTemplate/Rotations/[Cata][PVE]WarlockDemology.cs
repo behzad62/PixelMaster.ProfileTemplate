@@ -54,9 +54,9 @@ namespace CombatClasses
                 return CastAtPet("Dark Intent");
             if (IsSpellReadyOrCasting("Immolate"))
                 return CastAtTarget("Immolate");
-            else if(IsSpellReadyOrCasting("Bane of Agony"))
+            else if (IsSpellReadyOrCasting("Bane of Agony"))
                 return CastAtTarget("Bane of Agony");
-            else if(IsSpellReadyOrCasting("Curse of Agony"))
+            else if (IsSpellReadyOrCasting("Curse of Agony"))
                 return CastAtTarget("Curse of Agony");
             else if (IsSpellReadyOrCasting("Shadow Bolt"))
                 return CastAtTarget("Shadow Bolt");
@@ -78,9 +78,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.IsFleeingFromTheFight)
             {
@@ -98,9 +101,11 @@ namespace CombatClasses
                 if (manaPot != null)
                     return UseItem(manaPot);
             }
+            if (!IsClassicEra && pet != null && !pet.IsDead && !pet.HasBuff("Dark Intent") && IsSpellReady("Dark Intent"))
+                return CastAtPet("Dark Intent");
             if (IsSpellReady("Metamorphosis") && !player.HasBuff("Metamorphosis"))
                 return CastAtPlayer("Metamorphosis");
-            if (IsSpellReady("Soulburn") && player.SecondaryPower > 0 && !player.HasBuff("Soulburn") )
+            if (IsSpellReady("Soulburn") && player.SecondaryPower > 0 && !player.HasBuff("Soulburn"))
                 return CastAtPlayerLocation("Soulburn", isHarmfulSpell: false);
             if (pet != null && !pet.IsDead && IsSpellReady("Demon Soul") && !player.HasBuff("Demon Soul"))
                 return CastAtPlayerLocation("Demon Soul", isHarmfulSpell: false);
@@ -114,9 +119,9 @@ namespace CombatClasses
             }
             //AoE handling
             inCombatEnemies = om.InCombatEnemies;
-            if(inCombatEnemies.Count > 0)
+            if (inCombatEnemies.Count > 0)
             {
-                if(inCombatEnemies.Any(x => x.IsTargetingPlayer) && IsSpellReady("Soulshatter"))
+                if (inCombatEnemies.Any(x => x.IsTargetingPlayer) && IsSpellReady("Soulshatter"))
                     return CastAtPlayerLocation("Soulshatter", isHarmfulSpell: false);
             }
             if (inCombatEnemies.Count > 1)
@@ -126,27 +131,54 @@ namespace CombatClasses
                 {
                     if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReady("War Stomp"))
                         return CastAtPlayerLocation("War Stomp");
+                    if (IsSpellReady("Immolation Aura"))
+                        return CastAtPlayerLocation("Immolation Aura");
+                }
+                if (nearbyEnemies.Count < 5 && IsSpellReady("Demon Leap"))
+                {
+                    var leapEnemies = GetUnitsWithinArea(inCombatEnemies, NavigationHelpers.GetTargetPoint(player.Position, 16, player.Facing, false), 5);
+                    if (leapEnemies.Count > 4)
+                    {
+                        return CastAtPlayerLocation("Demon Leap");
+                    }
                 }
                 if (pet != null && !pet.IsDead && IsSpellReady("Felstorm"))
                 {
                     nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, pet.Position, 10);
-                    if(nearbyEnemies.Count > 1)
+                    if (nearbyEnemies.Count > 1)
                     {
                         return CastPetAbilityAtPetLocation("Felstorm");
                     }
                 }
+
+                if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
+                    return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
                 var inFrontCone = GetUnitsInFrontOfPlayer(inCombatEnemies, 60, 10);
                 if (inFrontCone.Count >= 3 && !inFrontCone.Any(e => e.HasAura("Polymorph")) && IsSpellReady("Shadowflame"))
                     return CastAtPlayerLocation("Shadowflame");
+                var inMeleeRange = inCombatEnemies.Count(u => u.IsTargetingPlayer && u.IsInMeleeRange);
+                if (IsSpellCasting("Hellfire") || inCombatEnemies.Count > 4 && inMeleeRange < 3)
+                {
+                    if (IsSpellCasting("Hellfire"))
+                        return CastAtGround(LastGroundSpellLocation, "Hellfire");
+                    if (!player.IsMoving && IsSpellReadyOrCasting("Hellfire"))
+                    {
+                        var AoELocation = GetBestAoELocation(inCombatEnemies, 10f, out int numEnemiesInAoE);
+                        if (numEnemiesInAoE >= 6)
+                            return CastAtGround(AoELocation, "Hellfire");
+                        else
+                            LogInfo($"{numEnemiesInAoE} enemies in Hellfire!");
+                    }
+                }
                 nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 10);
                 if (inCombatEnemies.Count > 2)
                 {
                     if (IsSpellReadyOrCasting("Howl of Terror"))
                         return CastAtPlayerLocation("Howl of Terror");
-                    var banishCandidates = nearbyEnemies.Where(e => e.HealthPercent > 20 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root) && (e.CreatureType == CreatureType.Demon || e.CreatureType == CreatureType.Elemental));
+                    var banishCandidates = nearbyEnemies.Where(e => e.HealthPercent > 20 && !e.IsCCed && !e.IsRooted && (e.CreatureType == CreatureType.Demon || e.CreatureType == CreatureType.Elemental) && (e.Level - player.Level) >= -8);
                     if (banishCandidates.Any() && IsSpellReadyOrCasting("Banish") && !inCombatEnemies.Any(e => e.HasDeBuff("Banish")))
                         return CastAtUnit(banishCandidates.First(), "Banish");
-                    var fearCandidates = nearbyEnemies.Where(e => e.HealthPercent > 20 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root) && (e.CreatureType != CreatureType.Undead));
+                    var fearCandidates = nearbyEnemies.Where(e => e.HealthPercent > 20 && !e.IsCCed && !e.IsRooted && !e.IsBoss && (e.CreatureType != CreatureType.Undead) && (e.Level - player.Level) >= -8);
                     if (fearCandidates.Any() && IsSpellReadyOrCasting("Fear") && !inCombatEnemies.Any(e => e.HasDeBuff("Fear")))
                         return CastAtUnit(fearCandidates.First(), "Fear");
                 }
@@ -162,12 +194,12 @@ namespace CombatClasses
                 {
                     //if (!multiDotTarget.HasDeBuff("Haunt") && IsSpellReadyOrCasting("Haunt"))
                     //    return CastAtUnit(multiDotTarget, "Haunt");
+                    if ((multiDotTarget.HealthPercent > 30 || multiDotTarget.IsElite && (multiDotTarget.Level - player.Level) >= -8) && !multiDotTarget.HasDeBuff("Corruption") && IsSpellReady("Corruption"))
+                        return CastAtUnit(multiDotTarget, "Corruption");
                     if (!multiDotTarget.HasDeBuff("Immolate") && IsSpellReadyOrCasting("Immolate"))
                         return CastAtUnit(multiDotTarget, "Immolate");
                     if (!multiDotTarget.HasDeBuff("Bane of Agony") && IsSpellReady("Bane of Agony"))
                         return CastAtUnit(multiDotTarget, "Bane of Agony");
-                    if ((multiDotTarget.HealthPercent > 30 || multiDotTarget.IsElite) && !multiDotTarget.HasDeBuff("Corruption") && IsSpellReadyOrCasting("Corruption"))
-                        return CastAtUnit(multiDotTarget, "Corruption");
                     if (!multiDotTarget.HasDeBuff("Curse of Agony") && IsSpellReady("Curse of Agony"))
                         return CastAtUnit(multiDotTarget, "Curse of Agony");
                 }
@@ -183,13 +215,13 @@ namespace CombatClasses
             {
                 if (targetedEnemy.HealthPercent <= 25 && (IsClassicEra && inv.GetItemCountInBags(6265) < MaxSoulShards() || player.SecondaryPower <= 1) && IsSpellReadyOrCasting("Drain Soul"))
                     return CastAtTarget("Drain Soul");
-                if(player.HealthPercent <= 70 && IsSpellReady("Death Coil"))
+                if (player.HealthPercent <= 70 && IsSpellReady("Death Coil"))
                     return CastAtTarget("Death Coil");
                 if (targetedEnemy.IsInMeleeRange)
                 {
                     if (!player.IsCasting && IsSpellReady("Death Coil") && !targetedEnemy.HasBuff("Death Coil"))
                         return CastAtTarget("Death Coil");
-                    if(targetedEnemy.IsCasting)
+                    if (targetedEnemy.IsCasting)
                     {
                         if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReady("War Stomp"))
                             return CastAtPlayerLocation("War Stomp");
@@ -209,7 +241,7 @@ namespace CombatClasses
                     return CastAtTarget("Bane of Agony");
                 if ((targetedEnemy.HealthPercent > 30 || targetedEnemy.IsElite) && !targetedEnemy.HasDeBuff("Corruption") && IsSpellReadyOrCasting("Corruption"))
                     return CastAtTarget("Corruption");
-                if(targetedEnemy.HealthPercent < 25 && targetedEnemy.IsElite && IsSpellReadyOrCasting("Soul Fire"))
+                if (targetedEnemy.HealthPercent < 25 && targetedEnemy.IsElite && IsSpellReadyOrCasting("Soul Fire"))
                     return CastAtTarget("Soul Fire");
                 if (player.PowerPercent > 10 && (IsClassicEra && player.HasBuff("Master Channeler") || player.HealthPercent < 50 || IsSpellCasting("Drain Life")) && IsSpellReadyOrCasting("Drain Life"))
                     return CastAtTarget("Drain Life");

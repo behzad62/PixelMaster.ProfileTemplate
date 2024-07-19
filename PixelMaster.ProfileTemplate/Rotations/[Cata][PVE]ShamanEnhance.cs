@@ -72,19 +72,17 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
-
-            if (settings.EnhancementHeal && (player.HealthPercent < 40 && maelstormStacks >= 4) || player.HealthPercent < 60 && maelstormStacks >= 5)
+            if (player.Debuffs.Any(d => d.Spell != null && d.Spell.DispelType == SpellDispelType.Curse))
             {
-                if (IsSpellReadyOrCasting("Greater Healing Wave"))
-                    return CastAtPlayer("Greater Healing Surge");
-                if (!PlayerLearnedSpell("Healing Surge") && IsSpellReadyOrCasting("Healing Wave"))
-                    return CastAtPlayer("Healing Wave");
-                if (IsSpellReadyOrCasting("Healing Surge"))
-                    return CastAtPlayer("Healing Surge");
+                if (IsSpellReady("Cleanse Spirit"))
+                    return CastAtPlayer("Cleanse Spirit");
             }
             if (player.IsFleeingFromTheFight)
             {
@@ -93,6 +91,15 @@ namespace CombatClasses
                 if (IsSpellReady("Stoneclaw Totem") && !IsTotemLanded("Stoneclaw Totem"))
                     return CastAtPlayerLocation("Stoneclaw Totem");
                 return null;
+            }
+            if (settings.EnhancementHeal && (player.HealthPercent < 40 && maelstormStacks >= 4) || player.HealthPercent < 60 && maelstormStacks >= 5)
+            {
+                if (IsSpellReadyOrCasting("Greater Healing Wave") && (maelstormStacks >= 5 || om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 2))
+                    return CastAtPlayer("Greater Healing Wave");
+                if (!PlayerLearnedSpell("Healing Surge") && IsSpellReadyOrCasting("Healing Wave") && (maelstormStacks >= 5 || om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 2))
+                    return CastAtPlayer("Healing Wave");
+                if (IsSpellReadyOrCasting("Healing Surge") && (maelstormStacks >= 5 || om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 3))
+                    return CastAtPlayer("Healing Surge");
             }
             //Burst
             //if (dynamicSettings.BurstEnabled)
@@ -107,8 +114,18 @@ namespace CombatClasses
                 {
                     if (IsSpellReady("Shamanistic Rage"))
                         return CastAtPlayerLocation("Shamanistic Rage", isHarmfulSpell: false);
-                    if (IsSpellReady("Magma Totem") && !om.PlayerTotems.Any(t => t.Name == "Magma Totem" || t.Name == "Fire Elemental Totem"))
+                    if (IsSpellReady("Magma Totem") && !om.PlayerTotems.Any(t => t.Name == "Magma Totem" && t.DistanceSquaredToPlayer <= 100 || t.Name == "Fire Elemental Totem"))
                         return CastAtPlayerLocation("Magma Totem", isHarmfulSpell: true);
+                    if (IsSpellReady("Strength of Earth Totem") && !player.HasAura("Strength of Earth"))
+                        return CastAtPlayerLocation("Strength of Earth Totem", isHarmfulSpell: false);
+                    if (IsSpellReady("Windfury Totem") && !player.HasBuff("Windfury Totem"))
+                        return CastAtPlayerLocation("Windfury Totem", isHarmfulSpell: false);
+                    if (IsSpellReady("Flame Shock"))
+                    {
+                        var flameTarget = nearbyEnemies.FirstOrDefault(e => !e.HasAura("Flame Shock", true));
+                        if (flameTarget != null)
+                            return CastAtUnit(flameTarget, "Flame Shock");
+                    }
                 }
             }
 
@@ -121,16 +138,17 @@ namespace CombatClasses
                     if (IsSpellReady("Wind Shear") && targetedEnemy.DistanceSquaredToPlayer < 25 * 25)
                         return CastAtTarget("Wind Shear");
                 }
-                if ((targetedEnemy.IsElite || inCombatEnemies.Count(e => e.IsTargetingPlayer || e.IsTargetingPlayerPet) >= 3))
+                var enemiesTargetingMe = inCombatEnemies.Where(e => e.IsTargetingPlayer || e.IsTargetingPlayerPet);
+                if ((targetedEnemy.IsElite || enemiesTargetingMe.Count() >= 3))
                 {
                     if (IsSpellReady("Shamanistic Rage"))
                         return CastAtPlayerLocation("Shamanistic Rage", isHarmfulSpell: false);
                     if (IsSpellReady("Feral Spirit"))
                         return CastAtTarget("Feral Spirit");
-                    if (IsSpellReady("Fire Elemental Totem"))
+                    if (enemiesTargetingMe.Count() >= 10 && IsSpellReady("Fire Elemental Totem"))
                         return CastAtPlayerLocation("Fire Elemental Totem");
                 }
-                if (targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => t.Name == "Searing Totem" || t.Name == "Fire Elemental Totem" || t.Name == "Magma Totem"))
+                if (targetedEnemy.DistanceSquaredToPlayer < 30 * 30 && IsSpellReady("Searing Totem") && !om.PlayerTotems.Any(t => t.Name == "Searing Totem" && Vector3.DistanceSquared(t.Position, targetedEnemy.Position) < 20 * 20 || t.Name == "Fire Elemental Totem" || t.Name == "Magma Totem" && t.DistanceSquaredToPlayer <= 20 * 20))
                     return CastAtPlayerLocation("Searing Totem", isHarmfulSpell: true);
 
                 if(player.Level < 20)

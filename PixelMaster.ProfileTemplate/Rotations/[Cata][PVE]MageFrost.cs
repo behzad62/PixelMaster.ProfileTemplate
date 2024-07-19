@@ -82,9 +82,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.PowerPercent < 80)
             {
@@ -92,7 +95,7 @@ namespace CombatClasses
                 if (manaGem != null)
                     return UseItem(manaGem);
             }
-            if (player.PowerPercent < 20)
+            if (player.PowerPercent < 20 && !om.CurrentMap.IsDungeon)
             {
                 var manaPotion = inv.GetManaPotion();
                 if (manaPotion != null)
@@ -133,9 +136,38 @@ namespace CombatClasses
                     if (IsSpellReady("Icy Veins"))
                         return CastAtPlayerLocation("Icy Veins", isHarmfulSpell: false);
                 }
+                var inMeleeRange = inCombatEnemies.Count(u => u.IsTargetingPlayer && u.IsInMeleeRange);
+                if (IsSpellCasting("Blizzard") || inCombatEnemies.Count > 4 && inMeleeRange < 3)
+                {
+                    if (IsSpellCasting("Blizzard"))
+                        return CastAtGround(LastGroundSpellLocation, "Blizzard");
+                    if (!player.IsMoving && IsSpellReadyOrCasting("Blizzard"))
+                    {
+                        var AoELocation = GetBestAoELocation(inCombatEnemies, 10f, out int numEnemiesInAoE);
+                        if (numEnemiesInAoE >= 5)
+                            return CastAtGround(AoELocation, "Blizzard");
+                        else
+                            LogInfo($"{numEnemiesInAoE} enemies in blizzard!");
+                    }
+                }
+                if(inMeleeRange >= 3 || player.IsStunned || player.IsSapped || player.IsRooted)
+                {
+                    if (IsSpellReady("Blink"))
+                    {
+                        Vector3? blinkTarget = GetSafePlaceAroundPlayer(20);
+                        if (blinkTarget.HasValue)
+                        {
+                            return CastAtDirection(blinkTarget.Value, "Blink");
+                        }
+                        else
+                            return CastAtPlayerLocation("Blink", isHarmfulSpell: false);
+                    }
+                    if (!player.HasAura("Mana Shield") && IsSpellReady("Mana Shield"))
+                        return CastAtPlayerLocation("Mana Shield", isHarmfulSpell: false);
+                }
                 if (polyTarget != null && IsSpellCasting("Polymorph"))
                     return CastAtUnit(polyTarget, "Polymorph", isHarmfulSpell: true, facing: SpellFacingFlags.None);
-                if (player.HealthPercent < 55 && IsSpellReady("Polymorph") && !inCombatEnemies.Any(e => e.HasAura("Polymorph", true)))
+                if (!player.IsMoving && player.HealthPercent < 55 && inMeleeRange < 3 && IsSpellReady("Polymorph") && !inCombatEnemies.Any(e => e.HasAura("Polymorph", true)))
                 {
                     var polymorphCandidates = inCombatEnemies.Where(e => IsViableForPolymorph(e, targetedEnemy)).ToList().OrderByDescending(u => u.HealthPercent);
                     if (polymorphCandidates.Any())
@@ -151,14 +183,11 @@ namespace CombatClasses
                 if ((inFrontCone.Count >= 1 && player.HasAura("Improved Cone of Cold") || inFrontCone.Count > 1) && !inFrontCone.Any(e => e.HasAura("Polymorph")) && IsSpellReady("Cone of Cold"))
                     return CastAtPlayerLocation("Cone of Cold");
                 var closeEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
-                if (!closeEnemies.Any(e => e.HasAura("Polymorph")) && closeEnemies.Where(u => !u.HasAnyDebuff(false, "Freeze", "Frost Nova", "Dragon's Breath", "Improved Cone of Cold", "Deep Freeze") && (u.CCs & ControlConditions.CC) == 0).Count() >= 1)
+                if (!closeEnemies.Any(e => e.HasAura("Polymorph")) && closeEnemies.Where(u => !u.HasAnyDebuff(false, "Freeze", "Frost Nova", "Dragon's Breath", "Improved Cone of Cold", "Deep Freeze") && !u.IsCCed).Count() >= 1)
                 {
                     if (IsSpellReady("Freeze"))
                         return CastPetAbilityAtGround(player.Position, "Freeze");
-                    else
-                    {
-                        LogWarning("Freeze is not ready!!!");
-                    }
+
                     if (IsSpellReady("Frost Nova"))
                         return CastAtPlayerLocation("Frost Nova");
                 }
@@ -183,7 +212,8 @@ namespace CombatClasses
                     return CastAtTarget("Frostfire Orb");
                 //if (IsSpellReadyOrCasting("Arcane Missiles") && player.HasBuff("Arcane Missiles!"))
                 //    return CastAtTarget("Arcane Missiles");
-
+                if (targetedEnemy.HasBuff("Spell Reflection"))
+                    return null;
                 if (player.HasBuff("Brain Freeze")) {
                     if (IsSpellReadyOrCasting("Frostfire Bolt"))
                         return CastAtTarget("Frostfire Bolt");
@@ -205,7 +235,12 @@ namespace CombatClasses
                 return false;
             if ((unit.CCs & ControlConditions.CC) != 0)
                 return false;
-
+            if(unit.IsBoss) 
+                return false;
+            if(unit.Level - ObjectManager.Instance.Player.Level <= -8)
+                return false;
+            if (unit.IsRooted || unit.IsStunned || unit.IsSapped) 
+                return false;
             if (unit.CreatureType != CreatureType.Beast && unit.CreatureType != CreatureType.Humanoid)
                 return false;
 

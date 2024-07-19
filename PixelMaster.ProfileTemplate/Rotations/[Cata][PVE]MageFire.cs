@@ -77,9 +77,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.PowerPercent < 80)
             {
@@ -87,7 +90,7 @@ namespace CombatClasses
                 if (manaGem != null)
                     return UseItem(manaGem);
             }
-            if (player.PowerPercent < 20)
+            if (player.PowerPercent < 20 && !om.CurrentMap.IsDungeon)
             {
                 var manaPotion = inv.GetManaPotion();
                 if (manaPotion != null)
@@ -111,6 +114,8 @@ namespace CombatClasses
                 if (IsSpellReady("Remove Lesser Curse"))
                     return CastAtPlayer("Remove Lesser Curse");
             }
+            //if (targetedEnemy != null && targetedEnemy.HasBuff("Spell Reflection") && IsSpellReady("Spellsteal"))
+            //    return CastAtTarget("Spellsteal");
             //Burst
             //if (dynamicSettings.BurstEnabled)
             //{
@@ -123,9 +128,25 @@ namespace CombatClasses
                     return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
                 if ((inCombatEnemies.Count(u => u.IsTargetingPlayer || u.IsTargetingPlayerPet) >= 3 || (targetedEnemy?.IsElite ?? false)) && IsSpellReady("Mirror Image"))
                     return CastAtTarget("Mirror Image");
+                if (targetedEnemy != null && inCombatEnemies.Count > 2 && IsSpellReady("Living Bomb") && !targetedEnemy.HasDeBuff("Living Bomb"))
+                    return CastAtTarget("Living Bomb");
+                var inMeleeRange = inCombatEnemies.Count(u => u.IsTargetingPlayer && u.IsInMeleeRange);
+                if (IsSpellCasting("Flamestrike") || inCombatEnemies.Count(e=>!e.HasDeBuff("Flamestrike")) > 4 && inMeleeRange < 3)
+                {
+                    if (IsSpellCasting("Flamestrike"))
+                        return CastAtGround(LastGroundSpellLocation, "Flamestrike");
+                    if (!player.IsMoving && IsSpellReadyOrCasting("Flamestrike"))
+                    {
+                        var AoELocation = GetBestAoELocation(inCombatEnemies, 10f, out int numEnemiesInAoE);
+                        if (numEnemiesInAoE >= 5)
+                            return CastAtGround(AoELocation, "Flamestrike");
+                        else
+                            LogInfo($"{numEnemiesInAoE} enemies in Flamestrike!");
+                    }
+                }
                 if (polyTarget != null && IsSpellCasting("Polymorph"))
                     return CastAtUnit(polyTarget, "Polymorph", isHarmfulSpell: true, facing: SpellFacingFlags.None);
-                if (player.HealthPercent < 55 && IsSpellReady("Polymorph") && !inCombatEnemies.Any(e=> e.HasAura("Polymorph", true)))
+                if (!player.IsMoving && player.HealthPercent < 55 && inMeleeRange < 3 && IsSpellReady("Polymorph") && !inCombatEnemies.Any(e=> e.HasAura("Polymorph", true)))
                 {
                     var polymorphCandidates = inCombatEnemies.Where(e => IsViableForPolymorph(e, targetedEnemy)).ToList().OrderByDescending(u => u.HealthPercent);
                     if (polymorphCandidates.Any())
@@ -162,7 +183,9 @@ namespace CombatClasses
                     if (IsSpellReadyOrCasting("Scorch"))
                         return CastAtTarget("Scorch");
                 }
-                if(IsSpellReady("Combustion") && targetedEnemy.HasAura("Pyroblast!") && (targetedEnemy.HasAura("Living Bomb", true) || !PlayerLearnedSpell("Living Bomb")) && 
+                if (targetedEnemy.HasBuff("Spell Reflection"))
+                    return null;
+                if (IsSpellReady("Combustion") && targetedEnemy.HasAura("Pyroblast!") && (targetedEnemy.HasAura("Living Bomb", true) || !PlayerLearnedSpell("Living Bomb")) && 
                     (targetedEnemy.HasAura("Ignite", true) || !player.HasAura("Ignite", true)))
                     return CastAtTarget("Combustion");
                 if(IsSpellReadyOrCasting("Scorch") && (player.IsMoving && player.HasAura("Firestarter", true) || targetedEnemy.AuraRemainingTime("Critical Mass").TotalSeconds < 1 && player.HasAura("Critical Mass", true)))
@@ -194,7 +217,12 @@ namespace CombatClasses
                 return false;
             if ((unit.CCs & ControlConditions.CC) != 0)
                 return false;
-
+            if (unit.IsBoss)
+                return false;
+            if (unit.Level - ObjectManager.Instance.Player.Level <= -8)
+                return false;
+            if (unit.IsRooted || unit.IsStunned || unit.IsSapped)
+                return false;
             if (unit.CreatureType != CreatureType.Beast && unit.CreatureType != CreatureType.Humanoid)
                 return false;
 
@@ -204,7 +232,7 @@ namespace CombatClasses
             if (!unit.IsInCombat)
                 return false;
 
-            if(unit.HasDeBuff("Living Bomb"))
+            if (unit.HasDeBuff("Living Bomb"))
                 return false;
 
             if (!unit.IsTargetingPlayer && !unit.IsTargetingPlayerPet && !unit.IsTargetingMyPartyMember)

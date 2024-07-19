@@ -49,7 +49,7 @@ namespace CombatClasses
                         return CastAtPlayerLocation("Stealth", isHarmfulSpell: false);
                 }
 
-                if(player.IsStealthed && IsSpellReady("Sprint") && targetedEnemy.DistanceSquaredToPlayer > 35 * 35)
+                if (player.IsStealthed && IsSpellReady("Sprint") && targetedEnemy.DistanceSquaredToPlayer > 35 * 35)
                     return CastAtPlayerLocation("Sprint", isHarmfulSpell: false);
 
                 if (targetedEnemy.Level >= player.Level - 4 && !player.IsStealthed && IsSpellReady("Stealth") && targetedEnemy.DistanceSquaredToPlayer < 40 * 40)
@@ -96,9 +96,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
 
 
@@ -121,10 +124,7 @@ namespace CombatClasses
             List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
             if (inCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsCasting) >= 1 && IsSpellReady("Cloak of Shadows"))
                 return CastAtPlayerLocation("Cloak of Shadows", isHarmfulSpell: false);
-            var blindTarget = inCombatEnemies.FirstOrDefault(e => e.IsTargetingPlayer && !e.Auras.Any(a=>a.Type == AuraType.Debuff && a.Spell.IsDoT));
-            if (blindTarget != null && IsSpellReady("Blind") && !player.HasBuff("Blade Flurry"))
-                return CastAtUnit(blindTarget, "Blind");
-
+            var bladeFlurryIsActive = player.HasBuff("Blade Flurry");
             if (inCombatEnemies.Count > 1)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 6);
@@ -133,13 +133,32 @@ namespace CombatClasses
                     if (IsSpellReady("Evasion") && !player.HasBuff("Evasion"))
                         return CastAtPlayerLocation("Evasion", isHarmfulSpell: false);
                 }
-                if (nearbyEnemies.Count(e => e.DistanceSquaredToPlayer < 64 && !e.HasAura("Blind")) > 1)
+                if (nearbyEnemies.Count >= 5)
                 {
-                    if (IsSpellReady("Blade Flurry"))
+                    if (IsSpellReady("Adrenaline Rush") && !player.HasBuff("Adrenaline Rush"))
+                        return CastAtPlayerLocation("Adrenaline Rush", isHarmfulSpell: false);
+                }
+                var closeEnemies = nearbyEnemies.Where(e => e.DistanceSquaredToPlayer < 64);
+                if (closeEnemies.Count() >= 10)
+                {
+                    if (bladeFlurryIsActive)
+                        return CastAtPlayerLocation("Blade Flurry", isHarmfulSpell: false);
+                    if (IsSpellReady("Fan of Knives"))
+                        return CastAtPlayerLocation("Fan of Knives", isHarmfulSpell: false);
+                }
+                else if (nearbyEnemies.Count(e => !e.HasAura("Blind")) > 1)
+                {
+                    if (!bladeFlurryIsActive && IsSpellReady("Blade Flurry"))
                         return CastAtPlayerLocation("Blade Flurry", isHarmfulSpell: false);
                 }
+                var blindTarget = inCombatEnemies.FirstOrDefault(e => e.IsTargetingPlayer && !e.Debuffs.Any(a => a.Spell.IsDoT) && (!bladeFlurryIsActive || e.DistanceSquaredToPlayer > 64));
+                if (blindTarget != null && IsSpellReady("Blind"))
+                    return CastAtUnit(blindTarget, "Blind");
             }
-
+            else if (bladeFlurryIsActive)
+            {
+                return CastAtPlayerLocation("Blade Flurry", isHarmfulSpell: false);
+            }
             //Targeted enemy
             if (targetedEnemy != null)
             {

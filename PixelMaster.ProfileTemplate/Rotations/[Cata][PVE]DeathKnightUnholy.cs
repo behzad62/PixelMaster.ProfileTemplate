@@ -70,13 +70,13 @@ namespace CombatClasses
 
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
-                UseAntiMagicShell))
+                UseAntiMagicShell) && IsSpellReady("Anti-Magic Shell"))
                 return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
             if (!player.HasActivePet && IsSpellReady("Raise Dead"))
                 return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
             if (player.HealthPercent < IceboundFortitudePercent && UseIceboundFortitude && IsSpellReady("Icebound Fortitude"))
                 return CastAtPlayer("Icebound Fortitude");
-            if (UseLichborne && (player.HealthPercent < LichbornePercent || !player.HasFullControl || player.CCs.HasFlag(ControlConditions.CC)) && IsSpellReady("Lichborne"))
+            if (UseLichborne && (player.HealthPercent < LichbornePercent || !player.HasFullControl || player.IsCCed) && IsSpellReady("Lichborne"))
                 return CastAtPlayer("Lichborne");
             if (player.HealthPercent < DeathStrikeEmergencyPercent && player.HasAura("Lichborne") && IsSpellReady("Death Coil"))
                 return CastAtPlayer("Death Coil");
@@ -86,9 +86,12 @@ namespace CombatClasses
                 var healthStone = inv.GetHealthstone();
                 if (healthStone != null)
                     return UseItem(healthStone);
-                var healingPot = inv.GetHealingPotion();
-                if (healingPot != null)
-                    return UseItem(healingPot);
+                if (!om.CurrentMap.IsDungeon)
+                {
+                    var healingPot = inv.GetHealingPotion();
+                    if (healingPot != null)
+                        return UseItem(healingPot);
+                }
             }
             if (player.IsFleeingFromTheFight)
             {
