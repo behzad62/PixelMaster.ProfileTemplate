@@ -86,9 +86,9 @@ namespace CombatClasses
             if (player.HasAura("Vanish"))
                 return null;
             if (player.HealthPercent <= 15 && IsSpellReady("Smoke Bomb"))
-                return CastAtPlayerLocation("Smoke Bomb");
+                return CastAtPlayerLocation("Smoke Bomb", isHarmfulSpell:false);
             if (player.HealthPercent <= 20 && IsSpellReady("Vanish"))
-                return CastAtPlayerLocation("Vanish");
+                return CastAtPlayerLocation("Vanish", isHarmfulSpell: false);
 
 
             if (player.HealthPercent < 45)
@@ -122,16 +122,18 @@ namespace CombatClasses
 
             //AoE handling
             List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
-            if (inCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsCasting) >= 1 && IsSpellReady("Cloak of Shadows"))
+            if (player.HealthPercent < 80 && inCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsCasting) >= 1 && IsSpellReady("Cloak of Shadows"))
                 return CastAtPlayerLocation("Cloak of Shadows", isHarmfulSpell: false);
             var bladeFlurryIsActive = player.HasBuff("Blade Flurry");
             if (inCombatEnemies.Count > 1)
             {
-                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 6);
-                if (nearbyEnemies.Count >= 2)
+                var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
+                if (nearbyEnemies.Count(e=> e.IsTargetingPlayer && e.IsInMeleeRange) >= 2)
                 {
-                    if (IsSpellReady("Evasion") && !player.HasBuff("Evasion"))
+                    if (player.HealthPercent < 80 && IsSpellReady("Evasion") && !player.HasBuff("Evasion"))
                         return CastAtPlayerLocation("Evasion", isHarmfulSpell: false);
+                    if(player.HealthPercent < 80 && IsSpellReady("Combat Readiness") && !player.HasBuff("Evasion"))
+                        return CastAtPlayerLocation("Combat Readiness", isHarmfulSpell: false);
                 }
                 if (nearbyEnemies.Count >= 5)
                 {
@@ -141,7 +143,7 @@ namespace CombatClasses
                 var closeEnemies = nearbyEnemies.Where(e => e.DistanceSquaredToPlayer < 64);
                 if (closeEnemies.Count() >= 10)
                 {
-                    if (bladeFlurryIsActive)
+                    if (bladeFlurryIsActive && IsSpellReady("Blade Flurry"))
                         return CastAtPlayerLocation("Blade Flurry", isHarmfulSpell: false);
                     if (IsSpellReady("Fan of Knives"))
                         return CastAtPlayerLocation("Fan of Knives", isHarmfulSpell: false);
