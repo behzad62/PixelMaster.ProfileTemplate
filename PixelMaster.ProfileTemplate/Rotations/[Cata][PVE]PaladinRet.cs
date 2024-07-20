@@ -58,8 +58,11 @@ namespace CombatClasses
             var comboPoints = player.SecondaryPower;
 
             if (!player.HasAura("Seal of Truth") && IsSpellReady("Seal of Truth"))
-                return CastAtPlayerLocation("Seal of Truth", isHarmfulSpell:false);
-
+                return CastAtPlayerLocation("Seal of Truth", isHarmfulSpell:false); 
+            if (!player.HasAura("Retribution Aura") && IsSpellReady("Retribution Aura"))
+                return CastAtPlayerLocation("Retribution Aura", isHarmfulSpell: false);
+            if (!player.HasAura("Blessing of Might") && IsSpellReady("Blessing of Might"))
+                return CastAtPlayerLocation("Blessing of Might", isHarmfulSpell: false);
             if (player.HealthPercent < 45)
             {
                 var healthStone = inv.GetHealthstone();
