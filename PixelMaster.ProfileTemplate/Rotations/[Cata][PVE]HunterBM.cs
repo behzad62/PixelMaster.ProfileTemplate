@@ -184,6 +184,11 @@ namespace CombatClasses
             if (inCombatEnemies.Count > 1)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
+                if(pet != null && pet.DistanceSquaredToPlayer < 225 && nearbyEnemies.Count(e=>e.IsTargetingPlayer) > 2)
+                {
+                    if (IsSpellReady("Feign Death"))
+                        return CastAtPlayerLocation("Feign Death", isHarmfulSpell:false);
+                }
                 if (nearbyEnemies.Count > 4)
                 {
                     if (!player.HasBuff("Trap Launcher") && IsSpellReady("Explosive Trap"))
