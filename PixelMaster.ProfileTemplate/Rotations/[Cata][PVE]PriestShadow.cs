@@ -67,9 +67,9 @@ namespace CombatClasses
                 return CastAtPlayer("Power Word: Shield");
             if (!player.IsCasting && player.PowerPercent < settings.DispersionMana && IsSpellReady("Dispersion"))
                 return CastAtPlayer("Dispersion");
-            if ((player.PowerPercent < settings.HymnofHopeMana || IsSpellCasting("Hymn of Hope")) && IsSpellReadyOrCasting("Hymn of Hope"))
+            if (!IsSpellCasting("Mind Sear") && (player.PowerPercent < settings.HymnofHopeMana || IsSpellCasting("Hymn of Hope")) && IsSpellReadyOrCasting("Hymn of Hope"))
                 return CastAtPlayer("Hymn of Hope");
-            if (settings.UsePsychicScream && GetUnitsWithinArea(inCombatEnemies, player.Position, 10).Count >= settings.PsychicScreamAddCount && IsSpellReady("Psychic Scream"))
+            if (settings.UsePsychicScream && !IsSpellCasting("Mind Sear") && GetUnitsWithinArea(inCombatEnemies, player.Position, 10).Count >= settings.PsychicScreamAddCount && IsSpellReady("Psychic Scream"))
                 return CastAtPlayerLocation("Psychic Scream");
             if (player.HealthPercent < settings.ShadowFlashHealHealth && IsSpellReadyOrCasting("Flash Heal"))
                 return CastAtPlayer("Flash Heal");
@@ -116,7 +116,9 @@ namespace CombatClasses
                     return CastAtTarget("Mind Sear");
                 if (IsSpellReady("Mind Sear"))
                 {
-                    var mindSearTarget = inCombatEnemies.Where(e => e.GetNearbyInCombatEnemies(10).Count >= 5).FirstOrDefault();
+                    var mindSearTargets = inCombatEnemies.Where(e => e.GetNearbyInCombatEnemies(10).Count >= 5).ToList();
+                    mindSearTargets.Sort((t1, t2) => t2.Health.CompareTo(t1.Health));
+                    var mindSearTarget = mindSearTargets.FirstOrDefault();
                     if (mindSearTarget != null)
                     {
                         return CastAtUnit(mindSearTarget, "Mind Sear");

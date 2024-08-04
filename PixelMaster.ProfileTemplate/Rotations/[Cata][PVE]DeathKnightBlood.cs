@@ -82,8 +82,8 @@ namespace CombatClasses
             var comboPoints = player.SecondaryPower;
             List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
 
-            if (!player.HasBuff("Blood Presence") && IsSpellReady("Blood Presence"))
-                return CastAtPlayerLocation("Blood Presence", isHarmfulSpell: false);
+            if (!player.HasBuff(48263) && IsSpellReady(48263))
+                return CastAtPlayerLocation(48263, isHarmfulSpell: false);
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
                 UseAntiMagicShell) && IsSpellReady("Anti-Magic Shell"))
