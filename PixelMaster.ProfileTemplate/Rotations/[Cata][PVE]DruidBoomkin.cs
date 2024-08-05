@@ -78,7 +78,7 @@ namespace CombatClasses
 
             if (!settings.NoHealBalanceAndFeral)
             {
-                if(player.HealthPercent <= settings.NonRestoRejuvenation && !player.HasAura("Rejuvenation", true) && IsSpellReady("Rejuvenation"))
+                if (player.HealthPercent <= settings.NonRestoRejuvenation && !player.HasAura("Rejuvenation", true) && IsSpellReady("Rejuvenation"))
                     return CastAtPlayer("Rejuvenation");
                 if (player.HealthPercent <= settings.NonRestoRegrowth && !player.HasAura("Regrowth", true) && IsSpellReadyOrCasting("Regrowth"))
                     return CastAtPlayer("Regrowth");
@@ -122,13 +122,15 @@ namespace CombatClasses
                         // If Detonate is coming off CD, make sure we drop some more shrooms. 3 seconds is probably a little late, but good enough.
                         var AoELocation = GetBestAoELocation(inCombatEnemies.Where(e => !IsCrowdControlled(e)), 8, out int numEnemiesInAoE);
                         if (numEnemiesInAoE >= 1)
+                        {
                             return CastAtGround(AoELocation, "Wild Mushroom");
+                        }
                     }
                     if(targetedEnemy != null && IsSpellReady("Force of Nature") && player.HasAura("Eclipse (Solar)", true))
                         return CastAtGround(targetedEnemy.Position, "Force of Nature");
                     if (IsSpellReady("Thorns") && !player.HasBuff("Thorns"))
                         return CastAtPlayerLocation("Thorns");
-                    if (settings.UseStarfall && IsSpellReadyOrCasting("Starfall") && (inCombatEnemies.Count > 5 || player.HasAura("Eclipse (Lunar)", true)))
+                    if (IsSpellReadyOrCasting("Starfall") && (inCombatEnemies.Count > 5 || player.HasAura("Eclipse (Lunar)", true)))
                         return CastPetAbilityAtPlayer("Starfall");
                     var inFrontCone = GetUnitsInFrontOfPlayer(inCombatEnemies, 45, 30);
                     if ((inFrontCone.Count >= 3 && player.HasAura("Eclipse (Solar)") || inFrontCone.Count >= 5) && IsSpellReady("Typhoon"))
