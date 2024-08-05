@@ -83,7 +83,7 @@ namespace CombatClasses
             if (player.IsFleeingFromTheFight)
             {
                 if (IsSpellReady("Feign Death"))
-                    return CastAtPlayer("Feign Death");
+                    return CastAtPlayerLocation("Feign Death", isHarmfulSpell:false);
                 if (!IsClassicEra)
                 {
                     if (IsSpellReady("Frost Trap"))
@@ -103,11 +103,11 @@ namespace CombatClasses
             if (dynamicSettings.BurstEnabled)
             {
                 if (IsSpellReady("Bestial Wrath") && !player.HasBuff("Bestial Wrath"))
-                    return CastAtPlayer("Bestial Wrath");
+                    return CastAtPlayerLocation("Bestial Wrath", isHarmfulSpell:false);
                 if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
-                    return CastAtPlayer("Berserking");
+                    return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
                 if (IsSpellReady("Rapid Fire"))
-                    return CastAtPlayer("Rapid Fire");
+                    return CastAtPlayerLocation("Rapid Fire", isHarmfulSpell: false);
             }
             inCombatEnemies = om.InCombatEnemies;
             var mendPetAt = !IsClassicEra || inCombatEnemies.Count(e => e.HealthPercent > 50) > 1 ? 70 : 40;
@@ -122,7 +122,7 @@ namespace CombatClasses
                 if (inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer) && IsSpellReady("Aspect of the Monkey"))
                 {
                     if (!player.HasBuff("Aspect of the Monkey"))
-                        return CastAtPlayer("Aspect of the Monkey");
+                        return CastAtPlayerLocation("Aspect of the Monkey", isHarmfulSpell: false);
                 }
                 else
                 {
@@ -131,23 +131,23 @@ namespace CombatClasses
                         if (IsSpellReady("Aspect of the Fox"))
                         {
                             if (!player.HasBuff("Aspect of the Fox"))
-                                return CastAtPlayer("Aspect of the Fox");
+                                return CastAtPlayerLocation("Aspect of the Fox", isHarmfulSpell: false);
                         }
                         else if (IsSpellReady("Aspect of the Hawk"))
                         {
                             if (!player.HasBuff("Aspect of the Hawk"))
-                                return CastAtPlayer("Aspect of the Hawk");
+                                return CastAtPlayerLocation("Aspect of the Hawk", isHarmfulSpell: false);
                         }
                     }
                     else if (IsSpellReady("Aspect of the Hawk"))
                     {
                         if (!player.HasBuff("Aspect of the Hawk"))
-                            return CastAtPlayer("Aspect of the Hawk");
+                            return CastAtPlayerLocation("Aspect of the Hawk", isHarmfulSpell: false);
                     }
                     else if (IsSpellReady("Aspect of the Monkey"))
                     {
                         if (!player.HasBuff("Aspect of the Monkey"))
-                            return CastAtPlayer("Aspect of the Monkey");
+                            return CastAtPlayerLocation("Aspect of the Monkey", isHarmfulSpell: false);
                     }
                 }
             }
@@ -156,28 +156,28 @@ namespace CombatClasses
                 if (((player.HealthPercent < 35 && inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer))
                     || (!PlayerLearnedSpell("Aspect of the Hawk") && !PlayerLearnedSpell("Aspect of the Fox")))
                     && IsSpellReady("Aspect of the Monkey") && !player.HasBuff("Aspect of the Monkey"))
-                    return CastAtPlayer("Aspect of the Monkey");
+                    return CastAtPlayerLocation("Aspect of the Monkey", isHarmfulSpell: false);
                 else if (player.PowerPercent < 30 && inCombatEnemies.Any(e => e.IsInMeleeRange && e.IsTargetingPlayer))
                 {
                     if (IsSpellReady("Aspect of the Fox"))
                     {
                         if (!player.HasBuff("Aspect of the Fox"))
-                            return CastAtPlayer("Aspect of the Fox");
+                            return CastAtPlayerLocation("Aspect of the Fox", isHarmfulSpell: false);
                     }
                     else if (IsSpellReady("Aspect of the Hawk"))
                     {
                         if (!player.HasBuff("Aspect of the Hawk"))
-                            return CastAtPlayer("Aspect of the Hawk");
+                            return CastAtPlayerLocation("Aspect of the Hawk", isHarmfulSpell: false);
                     }
                 }
                 else if (IsSpellReady("Aspect of the Hawk"))
                 {
                     if (!player.HasBuff("Aspect of the Hawk"))
-                        return CastAtPlayer("Aspect of the Hawk");
+                        return CastAtPlayerLocation("Aspect of the Hawk", isHarmfulSpell: false);
                 }
             }
             if (IsClassicEra && IsSpellReady("Heart of the Lion") && !player.HasBuff("Heart of the Lion"))
-                return CastAtPlayer("Heart of the Lion");
+                return CastAtPlayerLocation("Heart of the Lion");
             //AoE handling
             var minRange = IsClassicEra ? 8f : 5f;
             minRange += player.CombatReach;
