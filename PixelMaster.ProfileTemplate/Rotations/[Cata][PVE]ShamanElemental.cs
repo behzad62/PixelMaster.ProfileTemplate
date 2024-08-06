@@ -89,7 +89,7 @@ namespace CombatClasses
             }
             if (settings.ElementalHeal)
             {
-                if ((player.HealthPercent < 30 || IsSpellCasting("Healing Surge")) && IsSpellReadyOrCasting("Healing Surge") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 8)
+                if ((player.HealthPercent < 30 || IsSpellCasting("Healing Surge") && player.HealthPercent < 90) && IsSpellReadyOrCasting("Healing Surge") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 8)
                     return CastAtPlayer("Healing Surge");
                 if ((player.HealthPercent < 40 || IsSpellCasting("Greater Healing Wave")) && IsSpellReadyOrCasting("Greater Healing Wave") && !IsSpellCasting("Healing Wave") && !IsSpellCasting("Healing Surge") && om.InCombatEnemies.Count(e => e.IsTargetingPlayer && e.IsInMeleeRange) <= 2)
                     return CastAtPlayer("Greater Healing Wave");
@@ -116,6 +116,8 @@ namespace CombatClasses
                         return CastAtPlayerLocation("Earthbind Totem", isHarmfulSpell: false);
                     if (IsSpellReady("Thunderstorm"))
                         return CastAtPlayerLocation("Thunderstorm", isHarmfulSpell: true);
+                    if (!player.IsCasting && nearbyEnemies.Count > 5 && IsSpellReady("Magma Totem") && !om.PlayerTotems.Any(t => (t.Name == "Magma Totem" && Vector3.DistanceSquared(t.Position, player.Position) < 8 * 8) || t.Name == "Fire Elemental Totem"))
+                        return CastAtPlayerLocation("Magma Totem", isHarmfulSpell: true);
                 }
                 nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 40);
                 if (nearbyEnemies.Count >= 3)
@@ -129,6 +131,15 @@ namespace CombatClasses
                         var flameTarget = nearbyEnemies.FirstOrDefault(e => !e.HasAura("Flame Shock", true));
                         if (flameTarget != null)
                             return CastAtUnit(flameTarget, "Flame Shock");
+                    }
+                    if (!player.IsCasting && IsSpellReady("Fire Nova"))
+                    {
+                        var fireNovaTargets = inCombatEnemies.Where(e => e.HasAura("Flame Shock", true));
+                        fireNovaTargets = fireNovaTargets.SelectMany(e => e.GetNearbyInCombatEnemies(10));
+                        if (fireNovaTargets.Count() > 3)
+                        {
+                            return CastAtPlayerLocation("Fire Nova");
+                        }
                     }
                     if (IsSpellReady("Earthquake"))
                     {
