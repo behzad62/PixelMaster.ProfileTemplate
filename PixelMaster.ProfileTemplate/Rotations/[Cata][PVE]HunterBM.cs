@@ -311,7 +311,7 @@ namespace CombatClasses
                     {
                         if (targetedEnemy.HealthPercent > 30 && IsSpellReady("Serpent Sting") && !targetedEnemy.HasDeBuff("Serpent Sting"))
                             return CastAtTarget("Serpent Sting");
-                        if (IsSpellReady("Chimera Shot") && (targetedEnemy.HasDeBuff("Serpent Sting") || targetedEnemy.HasDeBuff("Scorpid Sting") || targetedEnemy.HasDeBuff("Viper Sting")))
+                        if (IsSpellReady("Chimera Shot") && (player.Level < 10 || targetedEnemy.HasDeBuff("Serpent Sting") || targetedEnemy.HasDeBuff("Scorpid Sting") || targetedEnemy.HasDeBuff("Viper Sting")))
                             return CastAtTarget("Chimera Shot");
                     }
                     else if (player.PowerPercent > 50 && targetedEnemy.HealthPercent > 60
@@ -367,6 +367,7 @@ namespace CombatClasses
                         if (player.IsMeleeWeaponReady)
                             return CastAtTarget(sb.AutoAttack);
                     }
+                    return CastAtTarget(sb.AutoAttack);
                 }
                 return CastAtTarget("Auto Shot");
             }

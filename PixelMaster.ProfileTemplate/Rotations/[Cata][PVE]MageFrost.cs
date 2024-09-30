@@ -226,6 +226,8 @@ namespace CombatClasses
                     return CastAtTarget("Frostbolt");
                 if (IsSpellReady("Shoot"))
                     return CastAtTarget("Shoot");
+                else
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }

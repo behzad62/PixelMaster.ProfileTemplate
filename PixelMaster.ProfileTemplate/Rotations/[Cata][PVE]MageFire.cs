@@ -208,6 +208,8 @@ namespace CombatClasses
                     return CastAtTarget("Fireball");
                 if (IsSpellReady("Shoot"))
                     return CastAtTarget("Shoot");
+                else
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }
