@@ -23,7 +23,7 @@ namespace PixelMaster.ProfileTemplate;
 public class EmptyProfile : IPMProfile //it is important to implement 'IPMProfile' interface, but u can change 'MyProfile' to any name
 {
     ILocalPlayer ME => ObjectManager.Instance.Player;//just a shortcut to use inside profile
-    PlayerInventory INV => ObjectManager.Instance.Player.Inventory;//just a shortcut to use inside profile
+    PlayerInventory INV => ObjectManager.Instance.Inventory;//just a shortcut to use inside profile
 
     List<Mob> avoidMobs = new List<Mob>()
     {
