@@ -13,6 +13,8 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
+using AdvancedCombatClasses.Settings.Cata;
+using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
@@ -30,7 +32,8 @@ namespace CombatClasses
         private bool UseDeathAndDecay => settings.UseDeathAndDecay;
         private bool UseEmpowerRuneWeapon => settings.UseEmpowerRuneWeapon;
 
-        private DeathKnightSettings settings => SettingsManager.Instance.DeathKnight;
+        private DeathKnightSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).DeathKnight;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr };
         public short Spec => 2;
         public UnitClass PlayerClass => UnitClass.DeathKnight;
         // 0 - Melee DPS : Will try to stick to the target
@@ -46,7 +49,7 @@ namespace CombatClasses
         {
             var om = ObjectManager.Instance;
             var player = om.Player;
-            var sb = player.SpellBook;
+            var sb = om.SpellBook;
             var targetedEnemy = om.AnyEnemy;
             if (targetedEnemy != null)
             {
@@ -66,15 +69,14 @@ namespace CombatClasses
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
             var player = om.Player;
-            var sb = player.SpellBook;
-            var inv = player.Inventory;
-            var comboPoints = player.SecondaryPower;
-            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
+            var sb = om.SpellBook;
+            var inv = om.Inventory;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies.ToList();
 
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
                 UseAntiMagicShell) && IsSpellReady("Anti-Magic Shell"))
-                return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
+                return CastWithoutTargeting("Anti-Magic Shell", isHarmfulSpell: false);
             //if (!player.HasActivePet && IsSpellReady("Raise Dead"))
             //    return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
             if (player.HealthPercent < IceboundFortitudePercent && UseIceboundFortitude && IsSpellReady("Icebound Fortitude"))
@@ -96,13 +98,13 @@ namespace CombatClasses
                         return UseItem(healingPot);
                 }
             }
-            if (player.IsFleeingFromTheFight)
+            if (om.IsPlayerFleeingFromCombat)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 12);
                 var ccCandidates = nearbyEnemies.Where(e => !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
                 foreach (var ccCandidate in ccCandidates)
                 {
-                    if (IsSpellReady("Strangulate") && !ccCandidate.HasDeBuff("Strangulate"))
+                    if (IsSpellReady("Strangulate") && !ccCandidate.HasDebuff("Strangulate"))
                         return CastAtUnit(ccCandidate, "Strangulate");
                 }
                 return null;
@@ -120,9 +122,9 @@ namespace CombatClasses
             if (UsePillarOfFrost && IsSpellReady("Pillar of Frost"))
                 return CastAtPlayer("Pillar of Frost");
             if (UseRaiseDead && targetedEnemy != null && targetedEnemy.IsElite && !player.HasActivePet && IsSpellReady("Raise Dead") && player.HasAura("Pillar of Frost"))
-                return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
+                return CastWithoutTargeting("Raise Dead", isHarmfulSpell: false);
             if (UseEmpowerRuneWeapon && targetedEnemy != null && targetedEnemy.IsElite && player.UnholyRuneCount == 0 && player.FrostRuneCount == 0 && player.DeathRuneCount == 0 && !IsSpellReady("Frost Strike"))
-                return CastAtPlayerLocation("Empower Rune Weapon", isHarmfulSpell: false);
+                return CastWithoutTargeting("Empower Rune Weapon", isHarmfulSpell: false);
             //AoE handling
             if (inCombatEnemies.Count > 1)
             {
@@ -138,9 +140,9 @@ namespace CombatClasses
                     if (targetedEnemy != null && player.Power == player.MaxPower && IsSpellReady("Frost Strike"))
                         return CastAtTarget("Frost Strike");
                     if (IsSpellReadyOrCasting("Hungering Cold"))
-                        return CastAtPlayerLocation("Hungering Cold");
+                        return CastWithoutTargeting("Hungering Cold");
                     if (IsSpellReady("Horn of Winter"))
-                        return CastAtPlayerLocation("Horn of Winter");
+                        return CastWithoutTargeting("Horn of Winter");
                     //if (om.PlayerPet != null && !om.PlayerPet.IsDead && !om.PlayerPet.HasAura("Dark Transformation") && IsSpellReady("Dark Transformation"))
                     //    return CastAtPlayerLocation("Dark Transformation");
 
@@ -154,7 +156,7 @@ namespace CombatClasses
                     var ccCandidates = nearbyEnemies.Where(e => e.HealthPercent > 25 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
                     foreach (var ccCandidate in ccCandidates)
                     {
-                        if (IsSpellReady("Strangulate") && !ccCandidate.HasDeBuff("Strangulate"))
+                        if (IsSpellReady("Strangulate") && !ccCandidate.HasDebuff("Strangulate"))
                             return CastAtUnit(ccCandidate, "Strangulate");
                     }
                     if (targetedEnemy != null && IsSpellReady("Plague Strike"))
@@ -163,7 +165,7 @@ namespace CombatClasses
                         return CastAtTarget("Frost Strike");
 
                     if (IsSpellReady("Horn of Winter"))
-                        return CastAtPlayerLocation("Horn of Winter");
+                        return CastWithoutTargeting("Horn of Winter");
                 }
                 //if (dynamicSettings.AllowBurstOnMultipleEnemies && inCombatEnemies.Count > 2)
                 //{
@@ -185,13 +187,13 @@ namespace CombatClasses
                     if (IsSpellReady("Mind Freeze") && targetedEnemy.DistanceSquaredToPlayer < 64)
                         return CastAtTarget("Mind Freeze");
                 }
-                if ((!targetedEnemy.HasDeBuff("Frost Fever") || !targetedEnemy.HasDeBuff("Blood Plague")) && IsSpellReady("Outbreak"))
+                if ((!targetedEnemy.HasDebuff("Frost Fever") || !targetedEnemy.HasDebuff("Blood Plague")) && IsSpellReady("Outbreak"))
                     return CastAtTarget("Outbreak");
-                if (!targetedEnemy.HasDeBuff("Frost Fever") && IsSpellReady("Howling Blast"))
+                if (!targetedEnemy.HasDebuff("Frost Fever") && IsSpellReady("Howling Blast"))
                     return CastAtTarget("Howling Blast");
-                if (!targetedEnemy.HasDeBuff("Frost Fever") && IsSpellReady("Icy Touch"))
+                if (!targetedEnemy.HasDebuff("Frost Fever") && IsSpellReady("Icy Touch"))
                     return CastAtTarget("Icy Touch");
-                if (!targetedEnemy.HasDeBuff("Blood Plague") && IsSpellReady("Plague Strike"))
+                if (!targetedEnemy.HasDebuff("Blood Plague") && IsSpellReady("Plague Strike"))
                     return CastAtTarget("Plague Strike");
                 if (!PlayerLearnedSpell("Obliterate") && IsSpellReady("Blood Strike"))
                     return CastAtTarget("Blood Strike");
@@ -202,8 +204,9 @@ namespace CombatClasses
                 if (player.HasAura("Freezing Fog") && IsSpellReady("Howling Blast"))
                     return CastAtTarget("Howling Blast");
                 if (IsSpellReady("Horn of Winter"))
-                    return CastAtPlayerLocation("Horn of Winter");
-                return CastAtTarget(sb.AutoAttack);
+                    return CastWithoutTargeting("Horn of Winter");
+                if (!targetedEnemy.IsPlayerAttacking)
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }

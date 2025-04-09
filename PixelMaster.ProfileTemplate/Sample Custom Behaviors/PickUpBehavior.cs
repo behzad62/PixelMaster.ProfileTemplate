@@ -10,51 +10,48 @@ using System.Threading;
 using PixelMaster.Services.Input;
 using PixelMaster.Services.Behaviors;
 using PixelMaster.Core.Exceptions;
-using PixelMaster.Services.Settings;
 using PixelMaster.Core.Wow;
-using PixelMaster.Core.Interfaces;
 using PixelMaster.Core.Behaviors.Transport;
 
 namespace PixelMaster.Core.Behaviors.QuestBehaviors
 {
-    public class PickUpBehavior : BaseContext
+    public class PickUpAllBehavior : BaseContext
     {
-        public PickUpBehavior(
+        public PickUpAllBehavior(
            int MapId,
-           int QuestId,
            int EntryId,
            string QuestName,
-           bool IgnoreCheck,
            float MinDistance,
            float MaxDistance,
            int WaitTime,
+           MobStateType MobState,
+           bool KillNearbyEnemies,
            List<Vector3> Hotspots)
         {
             this.mapId = MapId;
-            this.questId = QuestId;
             this.entryId = EntryId;
             this.questName = QuestName;
-            this.ignoreCheck = IgnoreCheck;
             this.minDistance = MinDistance;
             this.maxDistance = MaxDistance;
             this.waitTime = WaitTime;
+            this.mobState = MobState;
+            this.killNearbyEnemies = KillNearbyEnemies;
             this.hotspots = Hotspots;
         }
 
         public int mapId { get; }
-        public int questId { get; }
         public int entryId { get; }
         public string questName { get; }
         public float minDistance { get; }
         public float maxDistance { get; }
         public int waitTime { get; }
-        public bool ignoreCheck { get; }
+        public MobStateType mobState { get; set; }
+        public bool killNearbyEnemies { get; }
         public IReadOnlyList<Vector3> hotspots { get; }
 
-        private readonly PlayerUnit Me = ObjectManager.Instance.Player;
-        //private readonly IDataService dataService = CoreModule.DataService;
+        private ILocalPlayer Me => ObjectManager.Instance.Player;
         private bool closeNextFrame = true;
-        private WoWObjectWithPosition ObjectTarget = null;
+        private WoWObjectWithPosition? ObjectTarget = null;
         private int lastVisitedHotspot = 0;
         private Vector3 NextHotspot = Vector3.Zero;
         private bool didOnStart = false;
@@ -69,7 +66,7 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
             {
                 lastVisitedHotspot = s.Index;
             }
-            ConsoleLog($"PickUp: Started for QuestId {questId} {questName}!");
+            ConsoleLog($"PickUp: Started for task {questName}!");
             didOnStart = true;
         }
         public override async Task CancelTask()
@@ -154,207 +151,198 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
         }
         private async Task<bool> MainRoutine()
         {
-            IMouseAccessToken mouseAccess = null;
+            IMouseAccessToken? mouseAccess = null;
             var player = ObjectManager.Instance.Player;
-            try
-            {
-                if ((!ignoreCheck && await isQuestCompleted().ConfigureAwait(false)) || await haveQuest().ConfigureAwait(false))
-                {
-                    ConsoleLog($"Pick QuestId {questId}: is Done!");
-                    return true;
-                }
-                if (!didOnStart)
-                    OnStart();
+            if (!didOnStart)
+                OnStart();
 
-                while (true)
+            while (true)
+            {
+                if (closeNextFrame)
                 {
-                    if (closeNextFrame)
+                    await CloseFramesAsync();
+                    closeNextFrame = false;
+                }
+                ObjectTarget = FindNextTarget();
+                if (ObjectTarget == null && NextHotspot == Vector3.Zero)
+                {
+                    ConsoleDebug($"PickUpAll: no Entry in memory no destiny in memory Lets pick next destiny.");
+                    GetToNextSpot();
+                }
+                /*if (ObjectTarget == null && NextHotspot != Vector3.Zero && Vector3.DistanceSquared(NextHotspot, Me.Position) > 3.5f * 3.5f)
+                {
+                    ConsoleDebug($"PickUp no Entry in memory and far away from destiny lets move.");
+                    await MoveToNextSpot(mouseAccess);
+                }*/
+                if (ObjectTarget == null && NextHotspot != Vector3.Zero && !player.IsOnTaxi && Vector3.DistanceSquared(NextHotspot, Me.Position) > maxDistance * maxDistance)
+                {
+                    ConsoleDebug($"PickUpAll: no NPC near and far away from destiny lets move.");
+                    var stopOnFoundObject = CancellationTokenSource.CreateLinkedTokenSource(_cancellation.Token);
+                    try
                     {
-                        await CloseFramesAsync();
-                        closeNextFrame = false;
+                        if (ObjectManager.Instance.CurrentMap.MapID != mapId)
+                            ConsoleDebug($"PickUpAll: NPC at diferent continent.");
+                        var findObjectTask = FindNPC(stopOnFoundObject.Token);
+                        var movementTask = ActionManager.Instance.PlayerMovement.NavigateToTarget(NextHotspot, mapId, maxDistance, stopOnFoundObject.Token, true, true);
+                        await Task.WhenAny(findObjectTask, movementTask).ConfigureAwait(false);
+                        stopOnFoundObject.Cancel();
+                        await Task.WhenAll(findObjectTask, movementTask).ConfigureAwait(false);
                     }
-                    ObjectTarget = FindNextTargets().FirstOrDefault();
-                    if (ObjectTarget == null && NextHotspot == Vector3.Zero)
+                    catch (OperationCanceledException)
                     {
-                        ConsoleDebug($"PickUp no Entry in memory no destiny in memory Lets pick next destiny.");
-                        GetToNextSpot();
+                        if (_cancellation.IsCancellationRequested)
+                            throw;
                     }
-                    /*if (ObjectTarget == null && NextHotspot != Vector3.Zero && Vector3.DistanceSquared(NextHotspot, Me.Position) > 3.5f * 3.5f)
+                    finally
                     {
-                        ConsoleDebug($"PickUp no Entry in memory and far away from destiny lets move.");
-                        await MoveToNextSpot(mouseAccess);
-                    }*/
-                    if (ObjectTarget == null && NextHotspot != Vector3.Zero && !player.IsOnTaxi && Vector3.DistanceSquared(NextHotspot, Me.Position) > maxDistance * maxDistance)
+                        stopOnFoundObject.Dispose();
+                    }
+                }
+
+
+                if (ObjectTarget == null && NextHotspot != Vector3.Zero && Vector3.DistanceSquared(NextHotspot, Me.Position) <= maxDistance * maxDistance)
+                {
+                    ConsoleDebug($"PickUpAll: no Object in memory and near destiny.");
+                    if (hotspots.Count == 1)
                     {
-                        ConsoleDebug($"PickUp no NPC near and far away from destiny lets move.");
-                        var stopOnFoundObject = CancellationTokenSource.CreateLinkedTokenSource(_cancellation.Token);
-                        try
-                        {
-                            if (mouseAccess != null)
-                            {
-                                ActionManager.Instance.MouseAccess.ReleaseAccess(mouseAccess);
-                                mouseAccess = null;
-                            }
-                            var findObjectTask = FindNPC(stopOnFoundObject.Token);
-                            var movementTask = ActionManager.Instance.PlayerMovement.NavigateToTarget(NextHotspot, mapId, maxDistance, stopOnFoundObject.Token, true, true);
-                            await Task.WhenAny(findObjectTask, movementTask).ConfigureAwait(false);
-                            stopOnFoundObject.Cancel();
-                            await Task.WhenAll(findObjectTask, movementTask).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
+                        ConsoleLog($"PickUpAll: Im at destiny but no Object, also only have 1 hotspot lets wait for respaw.");
+                        await Task.Delay(5000, _cancellation.Token).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        ConsoleDebug($"PickUpAll: Im at destiny but no Npc here, removing destiny from memory.");
+                        NextHotspot = Vector3.Zero;
+                    }
+                }
+                if (ObjectTarget != null && !CanInteract(ObjectTarget))
+                {
+                    ConsoleDebug($"PickUpAll: Entry in memory and cant interact with it lets remove it.");
+                    ObjectTarget = FindNextTarget();
+                }
+                if (ObjectTarget != null && !player.IsOnTaxi && ObjectTarget.DistanceSquaredToPlayer > maxDistance * maxDistance)
+                {
+                    ConsoleDebug($"PickUpAll: Entry in memory and far away from it lets move to it.");
+                    try
+                    {
+                        await KillNearbyEnemies(ObjectTarget).ConfigureAwait(false);
+                        mouseAccess = ActionManager.Instance.MouseAccess.ReserveExclusiveMouseAccess("QuestPickup");
+                        await mouseAccess.WaitForAccess(5000, _cancellation.Token);
+                        if (ObjectTarget is WowUnit)
+                            await ActionManager.Instance.PlayerMovement.GetCloseToUnit(mouseAccess, ObjectTarget as WowUnit, maxDistance, _cancellation.Token).ConfigureAwait(false);
+                        else
+                            await ActionManager.Instance.PlayerMovement.NavigateToTarget(mouseAccess, ObjectTarget.Position, ObjectManager.Instance.CurrentMap.MapID, maxDistance, _cancellation.Token, true).ConfigureAwait(false);
+                        await ActionManager.Instance.PlayerMovement.Land(true, _cancellation.Token).ConfigureAwait(false);
+                        await ActionManager.Instance.PlayerActions.Dismount(_cancellation.Token).ConfigureAwait(false);
+                        ObjectTarget = FindNextTarget();//to refresh position
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is OperationCanceledException)
                         {
                             if (_cancellation.IsCancellationRequested)
                                 throw;
                         }
-                        finally
-                        {
-                            stopOnFoundObject.Dispose();
-                        }
+                        ObjectTarget = null;
                     }
-
-
-                    if (ObjectTarget == null && NextHotspot != Vector3.Zero && Vector3.DistanceSquared(NextHotspot, Me.Position) <= maxDistance * maxDistance)
+                    finally
                     {
-                        ConsoleDebug($"PickUp Im at destiny but no Entry here, removing destiny from memory.");
-                        NextHotspot = Vector3.Zero;
+                        ActionManager.Instance.MouseAccess.ReleaseAccess(mouseAccess);
+                        mouseAccess = null;
                     }
-                    if (ObjectTarget != null && !CanInteract(ObjectTarget))
-                    {
-                        ConsoleDebug($"PickUp Entry in memory and cant interact with it lets remove it.");
-                        ObjectTarget = FindNextTargets().FirstOrDefault();
-                    }
-                    if (ObjectTarget != null && !player.IsOnTaxi && ObjectTarget.DistanceSquaredToPlayer > maxDistance * maxDistance)
-                    {
-                        ConsoleDebug($"PickUp Entry in memory and far away from it lets move to it.");
-                        try
-                        {
-                            if (mouseAccess != null)
-                            {
-                                ActionManager.Instance.MouseAccess.ReleaseAccess(mouseAccess);
-                                mouseAccess = null;
-                            }
-                            await KillNearbyEnemies(ObjectTarget).ConfigureAwait(false);
-                            if (mouseAccess is null || mouseAccess.AccessStatus != MouseAccessStatus.Granted)
-                            {
-                                mouseAccess = ActionManager.Instance.MouseAccess.ReserveExclusiveMouseAccess("InteractWithObject");
-                                await mouseAccess.WaitForAccess(_cancellation.Token);
-                            }
-                            if (ObjectTarget is WowUnit)
-                                await ActionManager.Instance.PlayerMovement.GetCloseToUnit(mouseAccess, ObjectTarget as WowUnit, maxDistance, _cancellation.Token).ConfigureAwait(false);
-                            else
-                                await ActionManager.Instance.PlayerMovement.NavigateToTarget(mouseAccess, ObjectTarget.Position, ObjectManager.Instance.CurrentMap.MapID, maxDistance, _cancellation.Token, true).ConfigureAwait(false);
-                            await ActionManager.Instance.PlayerMovement.Land(true, _cancellation.Token).ConfigureAwait(false);
-                            await ActionManager.Instance.PlayerActions.Dismount(_cancellation.Token).ConfigureAwait(false);
-                            ObjectTarget = FindNextTargets().FirstOrDefault();//to refresh position
-                        }
-                        catch (Exception ex)
-                        {
-                            ObjectTarget = null;
-                            if (ex is OperationCanceledException)
-                            {
-                                if (_cancellation.IsCancellationRequested)
-                                    throw;
-                            }
-                        }
-                    }
-                    if (ObjectTarget != null && !player.IsOnTaxi && ObjectTarget.DistanceSquaredToPlayer <= maxDistance * maxDistance)
-                    {
-                        ConsoleDebug($"PickUp interacting with Entry for QuestId {questId} {questName}.");
-                        //ToDo disable all flags in flags list
-                        try
-                        {
-                            if (mouseAccess is null || mouseAccess.AccessStatus != MouseAccessStatus.Granted)
-                            {
-                                mouseAccess = ActionManager.Instance.MouseAccess.ReserveExclusiveMouseAccess("InteractWithObject");
-                                await mouseAccess.WaitForAccess(_cancellation.Token);
-                            }
-                            if (counter >= 6)
-                            {
-                                ConsoleWarning($"PickUp: failed to accept quest after 6 tries.");
-                                return false;
-                            }
-                            if (counter >= 3)//help to accept quest
-                            {
-                                ConsoleLog($"PickUp: failed to accept quest. It could happen due to lag. Repositioning the player.");
-                                await ActionManager.Instance.PlayerActions.ClearTarget(_cancellation.Token).ConfigureAwait(false);
-                                await RepositionPlayer(mouseAccess, _cancellation.Token).ConfigureAwait(false);
-                            }
-                            ConsoleLog($"PickUp: Interacting with {ObjectTarget.Name} for  QuestId {questId} {questName}!");
-                            await AcceptQuest(mouseAccess, ObjectTarget, questId, 1500, _cancellation.Token).ConfigureAwait(false);
-                            if (waitTime > 0)
-                                await Task.Delay(waitTime, _cancellation.Token).ConfigureAwait(false);
-
-                            ObjectTarget = null;
-                        }
-                        catch (WowActionFailedException e)
-                        {
-                            ConsoleDebug($"PickUp Got an exception while interacting to npc. Exception {e}");
-                            ObjectTarget = null;
-                        }
-                        catch (WowTaskFailedException e)
-                        {
-                            ConsoleDebug($"PickUp: error happened while accepting quest. Exception {e.Message}");
-                            ObjectTarget = null;
-                        }
-                        catch (PathNotFoundException e)
-                        {
-                            ConsoleDebug($"PickUp Got an exception while pathing to npc. Exception {e}");
-                            ObjectTarget = null;
-                            if (hotspots.Count > 1)
-                                GetToNextSpot();
-                        }
-                        catch (Exception ex)
-                        {
-                            ObjectTarget = null;
-                            if (ex is OperationCanceledException)
-                            {
-                                if (_cancellation.IsCancellationRequested)
-                                    throw;
-                            }
-                            ConsoleDebug($"PickUp Got an exception. Exception {ex}");
-                        }
-                        finally
-                        {
-                            counter++;
-                        }
-                        await Task.Delay(500, _cancellation.Token).ConfigureAwait(false);
-                        if (await haveQuest().ConfigureAwait(false) || await isQuestCompleted().ConfigureAwait(false))
-                        {
-                            await CloseFramesAsync().ConfigureAwait(false);
-                            return true;
-                        }
-                    }
-                    //better to slow things abit
-                    await ObjectManager.Instance.WaitForUpdatedData(_cancellation.Token).ConfigureAwait(false);
                 }
+                if (ObjectTarget != null && !player.IsOnTaxi && ObjectTarget.DistanceSquaredToPlayer <= maxDistance * maxDistance)
+                {
+                    ConsoleDebug($"PickUpAll: interacting with Entry for the task {questName}.");
+                    //ToDo disable all flags in flags list
+                    try
+                    {
+                        if (counter >= 6)
+                        {
+                            ConsoleWarning($"PickUpAll: failed to accept quest after 6 tries.");
+                            return false;
+                        }
+                        if (counter >= 3)//help to accept quest
+                        {
+                            ConsoleLog($"PickUpAll: failed to accept quest. It could happen due to lag. Repositioning the player.");
+                            await ActionManager.Instance.PlayerActions.ClearTarget(_cancellation.Token).ConfigureAwait(false);
+                            await RepositionPlayer(_cancellation.Token).ConfigureAwait(false);
+                        }
+                        ConsoleLog($"PickUpAll: Interacting with {ObjectTarget.Name} for the task '{questName}'!");
+                        await AcceptQuest(ObjectTarget, 1500, _cancellation.Token).ConfigureAwait(false);
+                        if (waitTime > 0)
+                            await Task.Delay(waitTime, _cancellation.Token).ConfigureAwait(false);
+                        ObjectTarget = null;
+                        return true;
+                    }
+                    catch (WowActionFailedException e)
+                    {
+                        ConsoleDebug($"PickUpAll: Got an exception while interacting to npc. Exception {e}");
+                        ObjectTarget = null;
+                    }
+                    catch (WowTaskFailedException e)
+                    {
+                        ConsoleDebug($"PickUpAll: error happened while accepting quest. Exception {e.Message}");
+                        await ActionManager.Instance.AddonInterface.CloseGameFrames(_cancellation.Token).ConfigureAwait(false);
+                        await Task.Delay(200, _cancellation.Token).ConfigureAwait(false);
+                        ObjectTarget = null;
+                    }
+                    catch (TimeoutException e)
+                    {
+                        ConsoleDebug($"PickUpAll: error happened while accepting quest. Exception {e.Message}");
+                        await ActionManager.Instance.AddonInterface.CloseGameFrames(_cancellation.Token).ConfigureAwait(false);
+                        await Task.Delay(200, _cancellation.Token).ConfigureAwait(false);
+                        ObjectTarget = null;
+                    }
+                    catch (PathNotFoundException e)
+                    {
+                        ConsoleDebug($"PickUpAll: Got an exception while pathing to npc. Exception {e}");
+                        ObjectTarget = null;
+                        if (hotspots.Count > 1)
+                            GetToNextSpot();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is OperationCanceledException)
+                        {
+                            if (_cancellation.IsCancellationRequested)
+                                throw;
+                        }
+                        ObjectTarget = null;
+                        ConsoleDebug($"PickUpAll: Got an exception. Exception {ex}");
+                    }
+                    finally
+                    {
+                        counter++;
+                    }
+                    await Task.Delay(500, _cancellation.Token).ConfigureAwait(false);
+                    await CloseFramesAsync().ConfigureAwait(false);
+                }
+                //better to slow things abit
+                await ObjectManager.Instance.WaitForUpdatedData(_cancellation.Token).ConfigureAwait(false);
             }
-            finally
+        }
+        WoWObjectWithPosition FindNextTarget()
+        {
+            var mob = ObjectManager.Instance.GetVisibleUnits().Where(npc => npc.Id == this.entryId &&
+                (mobState == MobStateType.DontCare ||
+                (npc.Health > 0 && mobState == MobStateType.Alive) ||
+                (npc.Health > 0 && !npc.IsInCombat && mobState == MobStateType.AliveNotInCombat) ||
+                (npc.IsDead && mobState == MobStateType.Dead))).ToList()
+                    .OrderBy(dist => dist.DistanceSquaredToPlayer)
+                    .FirstOrDefault();
+
+            if (mob != null)
+                return mob;
+            else
             {
-                if (mouseAccess != null)
-                    ActionManager.Instance.MouseAccess.ReleaseAccess(mouseAccess);
-
+                var gameObject = ObjectManager.Instance.GetVisibleGameObjects().Where(obj => obj.Id == this.entryId).ToList()
+                    .OrderBy(dist => dist.DistanceSquaredToPlayer)
+                    .FirstOrDefault();
+                if (gameObject != null)
+                    return gameObject;
             }
-        }
-        async Task<bool> haveQuest()
-        {
-            return await Me.QuestLog.HasQuestAsync(questId, 1500, _cancellation.Token).ConfigureAwait(false);
-        }
-        async Task<bool> isQuestCompleted()
-        {
-            return await Me.QuestLog.IsCompletedAsync(questId, 1500, _cancellation.Token).ConfigureAwait(false);
-        }
-        async Task<bool> IsTaskCompleted()
-        {
-            return await Me.QuestLog.HasQuestAsync(questId, 1500, _cancellation.Token).ConfigureAwait(false) || await Me.QuestLog.IsCompletedAsync(questId, 1500, _cancellation.Token).ConfigureAwait(false);
-        }
-        IEnumerable<WoWObjectWithPosition> FindNextTargets()
-        {
-            var mobs = ObjectManager.Instance.GetVisibleUnits().Where(obj => obj.Id == this.entryId).ToList();
-            var objects = ObjectManager.Instance.GetVisibleObjects().Where(obj => obj.Id == this.entryId).ToList();//GetVisibleGameObjects()
 
-            //IEnumerable<WoWObject> combined = mobs.Union(objects);
-            objects.Sort((o1, o2) => o1.DistanceSquaredToPlayer.CompareTo(o2.DistanceSquaredToPlayer));
-            return objects;
+            return null;
         }
         async Task CloseFramesAsync()
         {
@@ -378,12 +366,15 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
         {
             while (true)
             {
-                var mobs = ObjectManager.Instance.GetVisibleUnits().Where(npc => npc.Id == this.entryId).ToList();
-                if (mobs.Any())
+                if (ObjectManager.Instance.CurrentMap.MapID == this.mapId)
                 {
-                    mobs.Sort((o1, o2) => o1.DistanceSquaredToPlayer.CompareTo(o2.DistanceSquaredToPlayer));
-                    ObjectTarget = mobs.First();
-                    return;
+                    var mobs = ObjectManager.Instance.GetVisibleUnits().Where(npc => npc.Id == this.entryId).ToList();
+                    if (mobs.Any())
+                    {
+                        mobs.Sort((o1, o2) => o1.DistanceSquaredToPlayer.CompareTo(o2.DistanceSquaredToPlayer));
+                        ObjectTarget = mobs.First();
+                        return;
+                    }
                 }
                 await Task.Delay(1000, cancellation).ConfigureAwait(false);
 
@@ -400,7 +391,7 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
             logService.ConsoleDebug($"PickUp: next hotspot {NextHotspot}.");
             return NextHotspot;
         }
-        private async Task RepositionPlayer(IMouseAccessToken accessToken, CancellationToken cancellationToken)
+        private async Task RepositionPlayer(CancellationToken cancellationToken)
         {
             var player = ObjectManager.Instance.Player;
             int distance = 10;
@@ -416,10 +407,20 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
                 catch (PlayerStuckException) { }
             }
             logService.ConsoleDebug("Position behind is not walkable.");
-            var safePosition = GetPlaceAroundPlayer(player.Position, 45);
-            if (safePosition.HasValue)
+            IMouseAccessToken mouseAccess = null;
+            try
             {
-                await ActionManager.Instance.PlayerMovement.NavigateToTarget(accessToken, safePosition.Value, ObjectManager.Instance.CurrentMap.MapID, 1.5f, cancellationToken).ConfigureAwait(false);
+                var safePosition = GetPlaceAroundPlayer(player.Position, 45);
+                if (safePosition.HasValue)
+                {
+                    mouseAccess = ActionManager.Instance.MouseAccess.ReserveExclusiveMouseAccess("QuestPickup");
+                    await mouseAccess.WaitForAccess(5000, _cancellation.Token);
+                    await ActionManager.Instance.PlayerMovement.NavigateToTarget(mouseAccess, safePosition.Value, ObjectManager.Instance.CurrentMap.MapID, 1.5f, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                ActionManager.Instance.MouseAccess.ReleaseAccess(mouseAccess);
             }
         }
         private Vector3? GetPlaceAroundPlayer(in Vector3 startPosition, double maxSafePlaceDistance)
@@ -442,10 +443,13 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
             }
             return null;
         }
-        private async Task AcceptQuest(IMouseAccessToken mouseAccess, WoWObjectWithPosition questGiver, int questID, int timeout, CancellationToken cancellationToken)
+        private async Task AcceptQuest(WoWObjectWithPosition questGiver, int timeout, CancellationToken cancellationToken)
         {
+            IMouseAccessToken mouseAccess = null;
             try
             {
+                mouseAccess = ActionManager.Instance.MouseAccess.ReserveExclusiveMouseAccess("QuestPickupAll");
+                await mouseAccess.WaitForAccess(5000, _cancellation.Token);
                 bool questAccepted = await OpenQuestWindow(mouseAccess, questGiver, timeout, cancellationToken).ConfigureAwait(false);
                 if (questAccepted)
                     return;
@@ -454,28 +458,29 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
             {
                 throw new WowTaskFailedException(WowTaskType.AcceptQuest, ex.Message);
             }
-            string cmd = $"/run {CoreModule.Settings.AddonName}.quests:Accept({questID})";
+            finally
+            {
+                ActionManager.Instance.MouseAccess.ReleaseAccess(mouseAccess);
+            }
+            string cmd = $"/run {WowProcessManager.Instance.AddonName}.quests:AcceptAll()";
             await ActionManager.Instance.AddonInterface.ResetLastTaskStatus(cancellationToken).ConfigureAwait(false);
             timeout = await SendCommandToAddon(cmd, timeout, WowTaskType.AcceptQuest, cancellationToken).ConfigureAwait(false);
             await WaitForResult(timeout, WowTaskType.AcceptQuest, cancellationToken).ConfigureAwait(false);
             if (ActionManager.Instance.AddonInterface.LastAddonTaskStatus == LastTaskStatus.Failed)
-                throw new WowTaskFailedException(WowTaskType.AcceptQuest, $"Accepting quest '{questID}' failed.");
+                throw new WowTaskFailedException(WowTaskType.AcceptQuest, $"Accepting all quests from the questGiver '{questGiver}' failed.");
         }
         private async Task<bool> OpenQuestWindow(IMouseAccessToken mouseAccess, WoWObjectWithPosition questGiver, int timeout, CancellationToken cancellationToken)
         {
             int timePassed = 0;
             if (questGiver.Type == WoWObjectType.GameObject)
             {
-                await ActionManager.Instance.PlayerActions.InteractWithObject(mouseAccess, questGiver, 10000, 0, true, cancellationToken).ConfigureAwait(false);
+                await ActionManager.Instance.PlayerActions.InteractWithObject(mouseAccess, questGiver, 10000, false, true, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 await ActionManager.Instance.PlayerActions.InteractWithUnit(mouseAccess, questGiver as WowUnit, cancellationToken).ConfigureAwait(false);
             }
-            await ActionManager.Instance.AddonInterface.SetEncodingModeDefault(cancellationToken).ConfigureAwait(false);
             await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-            if (await IsTaskCompleted().ConfigureAwait(false))
-                return true;
             timePassed += 100;
             while (!ObjectManager.Instance.IsGossipOpen)
             {
@@ -485,17 +490,14 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
                 {
                     if (questGiver.Type == WoWObjectType.GameObject)
                     {
-                        await ActionManager.Instance.PlayerActions.InteractWithObject(mouseAccess, questGiver, 10000, 0, true, cancellationToken).ConfigureAwait(false);
+                        await ActionManager.Instance.PlayerActions.InteractWithObject(mouseAccess, questGiver, 10000, false, true, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         await ActionManager.Instance.PlayerActions.InteractWithUnit(mouseAccess, questGiver as WowUnit, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                await ActionManager.Instance.AddonInterface.SetEncodingModeDefault(cancellationToken).ConfigureAwait(false);
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-                if (await IsTaskCompleted().ConfigureAwait(false))
-                    return true;
                 timePassed += 100;
                 if (timeout > 0 && timePassed > timeout)
                 {
@@ -535,11 +537,9 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
                     await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
                     while (!ObjectManager.Instance.IsDataAvailable)
                         await Task.Delay(500, cancellationToken).ConfigureAwait(false);
-                    if (ObjectManager.Instance.EncodingMode == WowDataEncodingMode.Clean)
-                        await ActionManager.Instance.AddonInterface.SetEncodingModeDefault(cancellationToken).ConfigureAwait(false);
                     throw new WowTaskFailedException(taskType, "Task timed out.");
                 }
-                if (!ObjectManager.Instance.IsTrainerOpen)
+                if (!ObjectManager.Instance.IsGossipOpen)
                     throw new WowTaskFailedException(taskType, "Task failed, gossip is not open!");
                 await Task.Delay(50, cancellationToken).ConfigureAwait(false);
                 timePassed += 50;
@@ -547,7 +547,7 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
         }
         async Task KillNearbyEnemies(WoWObjectWithPosition objectTarget)
         {
-            if (BottingSessionManager.Instance.DynamicSettings.CombatDisabled)
+            if (!killNearbyEnemies || BottingSessionManager.Instance.DynamicSettings.CombatDisabled)
                 return;
             bool waitReported = false;
             var player = ObjectManager.Instance.Player;
@@ -555,7 +555,7 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
             {
                 if (objectTarget.DistanceSquaredToPlayer < 25)
                     break;
-                var nearbyEnemies = objectTarget.GetNearbyEnemies().Where(enemy => !blacklists.IsBlackListed(enemy.WowGuid) && !enemy.ShouldAvoidMob()).ToList();
+                var nearbyEnemies = objectTarget.GetNearbyEnemies().Where(enemy => !blacklists.IsBlackListed(enemy.WowGuid) && !enemy.ShouldAvoidMob() && (!ObjectManager.Instance.CurrentMap.IsIndoors || enemy.DistanceSquaredToPlayer < 25 * 25)).ToList();
                 if (nearbyEnemies.Any())
                 {
                     int minHP = 50;

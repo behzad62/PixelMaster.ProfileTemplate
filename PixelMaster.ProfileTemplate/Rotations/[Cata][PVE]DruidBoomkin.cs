@@ -14,12 +14,15 @@ using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
 using PixelMaster.Services.Logging;
+using AdvancedCombatClasses.Settings.Cata;
+using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
     public class DruidBoomkin : IPMRotation
     {
-        private DruidSettings settings => SettingsManager.Instance.Druid;
+        private DruidSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).Druid;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr};
         public short Spec => 1;
         public UnitClass PlayerClass => UnitClass.Druid;
         // 0 - Melee DPS : Will try to stick to the target
@@ -35,7 +38,7 @@ namespace CombatClasses
         {
             var om = ObjectManager.Instance;
             var player = om.Player;
-            var sb = player.SpellBook;
+            var sb = om.SpellBook;
             var targetedEnemy = om.AnyEnemy;
 
             if (targetedEnemy != null)
@@ -54,8 +57,8 @@ namespace CombatClasses
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
             var player = om.Player;
-            var sb = player.SpellBook;
-            var inv = player.Inventory;
+            var sb = om.SpellBook;
+            var inv = om.Inventory;
             var comboPoints = player.SecondaryPower;
 
             if (player.HealthPercent < 45)
@@ -87,18 +90,18 @@ namespace CombatClasses
             }
 
             if (player.Form != ShapeshiftForm.MoonkinForm && IsSpellReady("Moonkin Form"))
-                return CastAtPlayerLocation("Moonkin Form", isHarmfulSpell: false);
+                return CastWithoutTargeting("Moonkin Form", isHarmfulSpell: false);
 
-            if(player.HealthPercent <= settings.Barkskin && IsSpellReady("Barkskin"))
+            if(player.HealthPercent <= settings.BarkskinHealth && IsSpellReady("Barkskin"))
                 return CastAtPlayer("Barkskin");
 
 
-            if (player.IsFleeingFromTheFight)
+            if (om.IsPlayerFleeingFromCombat)
             {
                 if (IsSpellReady("Nature's Grasp") && !player.HasAura("Nature's Grasp", true))
-                    return CastAtPlayerLocation("Nature's Grasp");
+                    return CastWithoutTargeting("Nature's Grasp");
                 if (IsSpellReady("Dash", "Cat Form"))
-                    return CastAtPlayerLocation("Dash", "Cat Form");
+                    return CastWithoutTargeting("Dash", "Cat Form");
                 return null;
             }
             //Burst
@@ -107,7 +110,7 @@ namespace CombatClasses
 
             //}
             //AoE handling
-            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies.ToList();
             if (inCombatEnemies.Count > 1)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, targetedEnemy != null? targetedEnemy.Position: player.Position, 10);
@@ -115,7 +118,7 @@ namespace CombatClasses
                 {
                     // If we got 3 shrooms out. Pop 'em
                     if (MushroomCount >= 3 && IsSpellReady("Wild Mushroom: Detonate"))
-                        return CastAtPlayerLocation("Wild Mushroom: Detonate", isHarmfulSpell: true);
+                        return CastWithoutTargeting("Wild Mushroom: Detonate", isHarmfulSpell: true);
 
                     if (IsSpellReadyOrCasting("Wild Mushroom") && GetSpellCooldown("Wild Mushroom: Detonate").TotalSeconds <= 5)
                     {
@@ -129,12 +132,12 @@ namespace CombatClasses
                     if(targetedEnemy != null && IsSpellReady("Force of Nature") && player.HasAura("Eclipse (Solar)", true))
                         return CastAtGround(targetedEnemy.Position, "Force of Nature");
                     if (IsSpellReady("Thorns") && !player.HasBuff("Thorns"))
-                        return CastAtPlayerLocation("Thorns");
+                        return CastWithoutTargeting("Thorns");
                     if (IsSpellReadyOrCasting("Starfall") && (inCombatEnemies.Count > 5 || player.HasAura("Eclipse (Lunar)", true)))
                         return CastPetAbilityAtPlayer("Starfall");
                     var inFrontCone = GetUnitsInFrontOfPlayer(inCombatEnemies, 45, 30);
                     if ((inFrontCone.Count >= 3 && player.HasAura("Eclipse (Solar)") || inFrontCone.Count >= 5) && IsSpellReady("Typhoon"))
-                        return CastAtPlayerLocation("Typhoon");
+                        return CastWithoutTargeting("Typhoon");
                     var moonFireTarget = nearbyEnemies.Where(e=>!IsCrowdControlled(e) && !e.HasAura("Moonfire", true) && !e.HasAura("Sunfire", true)).FirstOrDefault();
                     if (moonFireTarget != null && IsSpellReady("Moonfire"))
                         return CastAtUnit(moonFireTarget, "Moonfire");
@@ -154,7 +157,7 @@ namespace CombatClasses
                     if (player.Form == ShapeshiftForm.BearForm && IsSpellReady("Bash", "Bear Form") && targetedEnemy.DistanceSquaredToPlayer < 10 * 10)
                         return CastAtTarget("Bash", "Bear Form");
                     if (!player.IsMoving && player.Race == UnitRace.Tauren && IsSpellReadyOrCasting("War Stomp") && targetedEnemy.DistanceSquaredToPlayer < 8 * 8)
-                        return CastAtPlayerLocation("War Stomp");
+                        return CastWithoutTargeting("War Stomp");
                 }
                 if (targetedEnemy.IsElite && IsSpellReady("Force of Nature") && player.HasAura("Eclipse (Solar)", true))
                     return CastAtGround(targetedEnemy.Position, "Force of Nature");
@@ -173,12 +176,13 @@ namespace CombatClasses
                 // Make sure we keep IS up. Clip the last tick. (~3s)
                 if (IsSpellReady("Insect Swarm") && targetedEnemy.AuraRemainingTime("Insect Swarm", true).TotalSeconds < 3)
                     return CastAtTarget("Insect Swarm");
-                if ((targetedEnemy.IsInMeleeRange && targetedEnemy.IsTargetingPlayer || player.HasAura("Eclipse (Solar)") || !player.HasAura("Eclipse (Lunar)") && player.Eclipse <= 0 || !PlayerLearnedSpell("Starfire")) && IsSpellReadyOrCasting("Wrath"))
+                if ((targetedEnemy.IsInPlayerMeleeRange && targetedEnemy.IsTargetingPlayer || player.HasAura("Eclipse (Solar)") || !player.HasAura("Eclipse (Lunar)") && player.Eclipse <= 0 || !PlayerLearnedSpell("Starfire")) && IsSpellReadyOrCasting("Wrath"))
                     return CastAtTarget("Wrath");
                 if (IsSpellReadyOrCasting("Starfire") && !IsSpellCasting("Wrath"))
                     return CastAtTarget("Starfire");
 
-                return CastAtTarget(sb.AutoAttack);
+                if (!player.IsCasting && !targetedEnemy.IsPlayerAttacking)
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }

@@ -13,12 +13,15 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
+using AdvancedCombatClasses.Settings.Cata;
+using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
     public class PriestDisc : IPMRotation
     {
-        private PriestSettings settings => SettingsManager.Instance.Priest;
+        private PriestSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).Priest;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr };
         public short Spec => 1;
         public UnitClass PlayerClass => UnitClass.Priest;
         // 0 - Melee DPS : Will try to stick to the target
@@ -36,7 +39,7 @@ namespace CombatClasses
         {
             var om = ObjectManager.Instance;
             var player = om.Player;
-            var sb = player.SpellBook;
+            var sb = om.SpellBook;
             var targetedEnemy = om.AnyEnemy;
             if (targetedEnemy != null)
             {
@@ -60,12 +63,11 @@ namespace CombatClasses
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
             var player = om.Player;
-            var sb = player.SpellBook;
-            var inv = player.Inventory;
-            var comboPoints = player.SecondaryPower;
+            var sb = om.SpellBook;
+            var inv = om.Inventory;
             //List<WowUnit>? inCombatEnemies = inCombatEnemies = om.InCombatEnemies;
             var group = om.PlayerGroup;
-            var isInBG = ObjectManager.Instance.CurrentMap.MapType == MapType.Battleground;
+            var isInBG = ObjectManager.Instance.CurrentMap.IsBattleGround;
 
             if (targetedEnemy != null && player.PowerPercent <= settings.ShadowfiendMana && IsSpellReady("Shadowfiend"))
                 return CastAtTarget("Shadowfiend", facing: SpellFacingFlags.None);
@@ -73,10 +75,10 @@ namespace CombatClasses
                 return CastAtPlayer("Desperate Prayer");
             if (player.PowerPercent <= 15 && !IsSpellReady("Shadowfiend") && IsSpellReadyOrCasting("Hymn of Hope"))
                 return CastAtPlayer("Hymn of Hope");
-            if (group != null && group.Members.Values.Count(p => p.IsGroupMemberOnline && p.HealthPercent <= settings.DivineHymnHealth) >= settings.DivineHymnCount && IsSpellReadyOrCasting("Divine Hymn"))
-                CastAtPlayerLocation("Divine Hymn", isHarmfulSpell: false);
+            if (group != null && group.Members.Count(p => group.IsGroupMemberOnline(p.WowGuid) && p.HealthPercent <= settings.DivineHymnHealth) >= settings.DivineHymnCount && IsSpellReadyOrCasting("Divine Hymn"))
+                CastWithoutTargeting("Divine Hymn", isHarmfulSpell: false);
             if (IsSpellReady("Archangel") && player.AuraStacks("Evangelism") >= 4)
-                return CastAtPlayerLocation("Archangel", isHarmfulSpell:false);
+                return CastWithoutTargeting("Archangel", isHarmfulSpell:false);
 
             if (player.HealthPercent <= 35)
             {
@@ -88,7 +90,7 @@ namespace CombatClasses
             if (group != null)
             {
                 var groupTanks = group.Tanks;
-                var healTargets = group.Members.Values.Where(FilterUnits).ToList();
+                var healTargets = group.Members.Where(FilterUnits).ToList();
                 if (healTargets.Any())
                 {
                     healTargets.Sort(new HealPriority() { IsInBG = isInBG, Tanks = groupTanks });
@@ -96,10 +98,10 @@ namespace CombatClasses
                     if (healTarget.IsInCombat && IsSpellReady("Power Word: Shield") && !healTarget.HasAura("Weakened Soul"))
                         return CastAtUnit(healTarget, "Power Word: Shield", isHarmfulSpell: false, facing: SpellFacingFlags.None);
                     if (IsSpellReadyOrCasting("Prayer of Healing")
-                        && group.GetMembersInRaidGroup(healTarget.RaidGroupIndex).Count(m => m.HealthPercent <= settings.PrayerOfHealing && Vector3.DistanceSquared(m.Position, healTarget.Position) < 30 * 30) >= settings.PrayerOfHealingCount)
+                        && group.GetMembersInRaidGroup(group.GetRaidGroupIndex(healTarget.WowGuid)).Count(m => m.HealthPercent <= settings.PrayerOfHealing && Vector3.DistanceSquared(m.Position, healTarget.Position) < 30 * 30) >= settings.PrayerOfHealingCount)
                     {
                         if(IsSpellReady("Inner Focus"))
-                            return CastAtPlayerLocation("Inner Focus", isHarmfulSpell: false);
+                            return CastWithoutTargeting("Inner Focus", isHarmfulSpell: false);
                         return CastAtUnit(healTarget, "Prayer of Healing", isHarmfulSpell: false, facing: SpellFacingFlags.None);
                     }
                     if (healTarget.IsInCombat && IsSpellReady("Pain Supression") && healTarget.HealthPercent < settings.PainSuppression)
@@ -109,15 +111,15 @@ namespace CombatClasses
                     if (healTarget.HealthPercent <= settings.HolyFlashHeal && IsSpellReadyOrCasting("Flash Heal"))
                     {
                         if (IsSpellReady("Inner Focus"))
-                            return CastAtPlayerLocation("Inner Focus", isHarmfulSpell: false);
+                            return CastWithoutTargeting("Inner Focus", isHarmfulSpell: false);
                         return CastAtUnit(healTarget, "Flash Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
                     }
-                    if (healTarget.HealthPercent <= settings.BindingHealThem && player.HealthPercent < settings.BindingHealMe && !healTarget.IsSameAs(player) && IsSpellReadyOrCasting("Binding Heal"))
+                    if (healTarget.HealthPercent <= settings.BindingHealThem && player.HealthPercent < settings.BindingHealMe && !healTarget.IsSameAs((WowUnit)player) && IsSpellReadyOrCasting("Binding Heal"))
                         return CastAtUnit(healTarget, "Binding Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
                     if (healTarget.HealthPercent <= settings.HolyGreaterHeal && IsSpellReadyOrCasting("Greater Heal"))
                     {
                         if (IsSpellReady("Inner Focus"))
-                            return CastAtPlayerLocation("Inner Focus", isHarmfulSpell: false);
+                            return CastWithoutTargeting("Inner Focus", isHarmfulSpell: false);
                         return CastAtUnit(healTarget, "Greater Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
                     }
                     if (healTarget.HealthPercent <= settings.HolyHeal && IsSpellReadyOrCasting("Heal"))
@@ -133,7 +135,7 @@ namespace CombatClasses
                         return CastAtTarget("Smite");
                 }
             }
-            if (player.IsFleeingFromTheFight)
+            if (om.IsPlayerFleeingFromCombat)
             {
 
                 return null;
@@ -171,6 +173,8 @@ namespace CombatClasses
                     if (IsSpellReadyOrCasting("Smite"))
                         return CastAtTarget("Smite");
                 }
+                if (!player.IsCasting && !targetedEnemy.IsPlayerAttacking && targetedEnemy.IsInPlayerMeleeRange)
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }
@@ -178,8 +182,8 @@ namespace CombatClasses
         private bool FilterUnits(WowUnit? unit)
         {
             return unit is not null && (unit.IsPlayer || unit.IsLocalPlayer)
-                && !unit.IsEnemy && !unit.IsDead && unit.HealthPercent < SettingsManager.Instance.General.IgnoreHealTargetsAboveHealth
-                && (unit.DistanceSquaredToPlayer <= 40 * 40 || (ObjectManager.Instance.CurrentMap.MapType != MapType.Battleground && !SettingsManager.Instance.General.DisableAllMovement));
+                && !unit.IsEnemy && !unit.IsDead && unit.HealthPercent < 95
+                && (unit.DistanceSquaredToPlayer <= 40 * 40 || (!ObjectManager.Instance.CurrentMap.IsBattleGround && !SettingsManager.Instance.Settings.FightSettings.DisableAllMovement));
         }
         private WowUnit? GetHighestHealPriority(IEnumerable<WowUnit> units, bool isInBG, IEnumerable<WowUnit> tanks)
         {

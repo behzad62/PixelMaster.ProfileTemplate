@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System;
 using System.Linq;
+using AdvancedCombatClasses.Settings.Cata;
+using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
@@ -41,7 +43,8 @@ namespace CombatClasses
         private int EmpowerRuneWeaponPercent => settings.EmpowerRuneWeaponPercent;
         private bool UseArmyOfTheDead => settings.UseArmyOfTheDead;
         private int ArmyOfTheDeadPercent => settings.ArmyOfTheDeadPercent;
-        private DeathKnightSettings settings => SettingsManager.Instance.DeathKnight;
+        private DeathKnightSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).DeathKnight;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr };
         public short Spec => 1;
         public UnitClass PlayerClass => UnitClass.DeathKnight;
         // 0 - Melee DPS : Will try to stick to the target
@@ -57,7 +60,7 @@ namespace CombatClasses
         {
             var om = ObjectManager.Instance;
             var player = om.Player;
-            var sb = player.SpellBook;
+            var sb = om.SpellBook;
             var targetedEnemy = om.AnyEnemy;
             if (targetedEnemy != null)
             {
@@ -77,17 +80,16 @@ namespace CombatClasses
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
             var player = om.Player;
-            var sb = player.SpellBook;
-            var inv = player.Inventory;
-            var comboPoints = player.SecondaryPower;
-            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
+            var sb = om.SpellBook;
+            var inv = om.Inventory;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies.ToList();
 
             if (!player.HasBuff(48263) && IsSpellReady(48263))
-                return CastAtPlayerLocation(48263, isHarmfulSpell: false);
+                return CastWithoutTargeting(48263, isHarmfulSpell: false);
             if (inCombatEnemies.Any(u => (u.IsCasting || u.ChannelingSpellID != 0) &&
                 u.TargetGUID == player.WowGuid &&
                 UseAntiMagicShell) && IsSpellReady("Anti-Magic Shell"))
-                return CastAtPlayerLocation("Anti-Magic Shell", isHarmfulSpell: false);
+                return CastWithoutTargeting("Anti-Magic Shell", isHarmfulSpell: false);
             if (player.HealthPercent < PetSacrificePercent && player.HasActivePet && IsSpellReady("Death Pact"))
                 return CastAtPlayer("Death Pact");
             if (player.HealthPercent < 90 && player.HasAura("Will of the Necropolis") && IsSpellReady("Rune Tap"))
@@ -100,27 +102,27 @@ namespace CombatClasses
                 && (!BoneShieldExclusive && player.HealthPercent < BoneShieldPercent
                 || (!player.HasAura("Vampiric Blood") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Lichborne") && !player.HasAura("Icebound Fortitude")))
                 && IsSpellReady("Bone Shield"))
-                return CastAtPlayerLocation("Bone Shield", isHarmfulSpell: false);
+                return CastWithoutTargeting("Bone Shield", isHarmfulSpell: false);
             if (UseVampiricBlood && player.HealthPercent < VampiricBloodPercent && (!VampiricBloodExclusive
                 || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Lichborne") && !player.HasAura("Icebound Fortitude")))
                 && IsSpellReady("Vampiric Blood"))
-                return CastAtPlayerLocation("Vampiric Blood", isHarmfulSpell: false);
+                return CastWithoutTargeting("Vampiric Blood", isHarmfulSpell: false);
             if (UseLichborne && player.HealthPercent < LichbornePercent && player.Power >= 600 && (!LichborneExclusive
              || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Vampiric Blood") && !player.HasAura("Icebound Fortitude")))
              && IsSpellReady("Lichborne"))
-                return CastAtPlayerLocation("Lichborne", isHarmfulSpell: false);
+                return CastWithoutTargeting("Lichborne", isHarmfulSpell: false);
             if (UsePetSacrifice && player.HealthPercent < PetSacrificeSummonPercent && (!PetSacrificeExclusive
                  || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Vampiric Blood") && !player.HasAura("Icebound Fortitude") && !player.HasAura("Lichborne")))
                  && IsSpellReady("Raise Dead"))
-                return CastAtPlayerLocation("Raise Dead", isHarmfulSpell: false);
+                return CastWithoutTargeting("Raise Dead", isHarmfulSpell: false);
             if (UseIceboundFortitude && player.HealthPercent < IceboundFortitudePercent && player.Power >= 600 && (!IceboundFortitudeExclusive
              || (!player.HasAura("Bone Shield") && !player.HasAura("Dancing Rune Weapon") && !player.HasAura("Vampiric Blood") && !player.HasAura("Lichborne")))
              && IsSpellReady("Icebound Fortitude"))
-                return CastAtPlayerLocation("Icebound Fortitude", isHarmfulSpell: false);
+                return CastWithoutTargeting("Icebound Fortitude", isHarmfulSpell: false);
             if (player.HealthPercent < EmpowerRuneWeaponPercent && !IsSpellReady("Death Strike") && IsSpellReady("Empower Rune Weapon"))
-                return CastAtPlayerLocation("Empower Rune Weapon", isHarmfulSpell: false);
+                return CastWithoutTargeting("Empower Rune Weapon", isHarmfulSpell: false);
             if (player.HealthPercent < ArmyOfTheDeadPercent && UseArmyOfTheDead && IsSpellReady("Army of the Dead"))
-                return CastAtPlayerLocation("Army of the Dead", isHarmfulSpell: true);
+                return CastWithoutTargeting("Army of the Dead", isHarmfulSpell: true);
 
             if (player.HealthPercent < 45)
             {
@@ -134,13 +136,13 @@ namespace CombatClasses
                         return UseItem(healingPot);
                 }
             }
-            if (player.IsFleeingFromTheFight)
+            if (om.IsPlayerFleeingFromCombat)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 12);
                 var ccCandidates = nearbyEnemies.Where(e => !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
                 foreach (var ccCandidate in ccCandidates)
                 {
-                    if (IsSpellReady("Strangulate") && !ccCandidate.HasDeBuff("Strangulate"))
+                    if (IsSpellReady("Strangulate") && !ccCandidate.HasDebuff("Strangulate"))
                         return CastAtUnit(ccCandidate, "Strangulate");
                 }
                 return null;
@@ -166,17 +168,17 @@ namespace CombatClasses
                         var AoELocation = GetBestAoELocation(inCombatEnemies, 10f, out int numEnemiesInAoE);
                         return CastAtGround(AoELocation, "Death and Decay");
                     }
-                    if (targetedEnemy != null && (!targetedEnemy.HasDeBuff("Frost Fever") || !targetedEnemy.HasDeBuff("Blood Plague")) && IsSpellReady("Outbreak"))
+                    if (targetedEnemy != null && (!targetedEnemy.HasDebuff("Frost Fever") || !targetedEnemy.HasDebuff("Blood Plague")) && IsSpellReady("Outbreak"))
                         return CastAtTarget("Outbreak");
-                    if (targetedEnemy != null && !targetedEnemy.HasDeBuff("Frost Fever") && IsSpellReady("Icy Touch"))
+                    if (targetedEnemy != null && !targetedEnemy.HasDebuff("Frost Fever") && IsSpellReady("Icy Touch"))
                         return CastAtTarget("Icy Touch");
-                    if (targetedEnemy != null && !targetedEnemy.HasDeBuff("Blood Plague") && IsSpellReady("Plague Strike"))
+                    if (targetedEnemy != null && !targetedEnemy.HasDebuff("Blood Plague") && IsSpellReady("Plague Strike"))
                         return CastAtTarget("Plague Strike");
 
                     if (targetedEnemy != null
                         && IsSpellReady("Pestilence")
-                        && targetedEnemy.HasDeBuff("Frost Fever") && targetedEnemy.HasDeBuff("Blood Plague")
-                        && targetedEnemy.GetNearbyInCombatEnemies(10).Where(e => e.HasDeBuff("Frost Fever") && e.HasDeBuff("Blood Plague")).Any())
+                        && targetedEnemy.HasDebuff("Frost Fever") && targetedEnemy.HasDebuff("Blood Plague")
+                        && targetedEnemy.GetNearbyInCombatEnemies(10).Where(e => e.HasDebuff("Frost Fever") && e.HasDebuff("Blood Plague")).Any())
                         return CastAtTarget("Pestilence", facing: SpellFacingFlags.None);
                     if (targetedEnemy != null && IsSpellReady("Death Strike"))
                         return CastAtTarget("Death Strike");
@@ -189,7 +191,7 @@ namespace CombatClasses
                     var ccCandidates = nearbyEnemies.Where(e => e.HealthPercent > 25 && !e.CCs.HasFlag(ControlConditions.CC) && !e.CCs.HasFlag(ControlConditions.Root));
                     foreach (var ccCandidate in ccCandidates)
                     {
-                        if (IsSpellReady("Strangulate") && !ccCandidate.HasDeBuff("Strangulate"))
+                        if (IsSpellReady("Strangulate") && !ccCandidate.HasDebuff("Strangulate"))
                             return CastAtUnit(ccCandidate, "Strangulate");
                     }
                 }
@@ -213,15 +215,15 @@ namespace CombatClasses
                     if (IsSpellReady("Mind Freeze") && targetedEnemy.DistanceSquaredToPlayer < 64)
                         return CastAtTarget("Mind Freeze");
                 }
-                if ((!targetedEnemy.HasDeBuff("Frost Fever") || !targetedEnemy.HasDeBuff("Blood Plague")) && IsSpellReady("Outbreak"))
+                if ((!targetedEnemy.HasDebuff("Frost Fever") || !targetedEnemy.HasDebuff("Blood Plague")) && IsSpellReady("Outbreak"))
                     return CastAtTarget("Outbreak");
-                if (!targetedEnemy.HasDeBuff("Frost Fever") && IsSpellReady("Icy Touch"))
+                if (!targetedEnemy.HasDebuff("Frost Fever") && IsSpellReady("Icy Touch"))
                     return CastAtTarget("Icy Touch");
-                if (!targetedEnemy.HasDeBuff("Blood Plague") && IsSpellReady("Plague Strike"))
+                if (!targetedEnemy.HasDebuff("Blood Plague") && IsSpellReady("Plague Strike"))
                     return CastAtTarget("Plague Strike");
                 if (IsSpellReady("Death Coil") && player.Power >= 800 && !PlayerLearnedSpell("Rune Strike"))
                     return CastAtTarget("Death Coil");
-                if (IsSpellReady("Death Coil") && !targetedEnemy.IsInMeleeRange)
+                if (IsSpellReady("Death Coil") && !targetedEnemy.IsInPlayerMeleeRange)
                     return CastAtTarget("Death Coil");
                 if (IsSpellReady("Rune Strike"))
                     return CastAtTarget("Rune Strike");
@@ -231,7 +233,8 @@ namespace CombatClasses
                     return CastAtTarget("Heart Strike");
                 if (targetedEnemy != null && IsSpellReady("Icy Touch"))
                     return CastAtTarget("Icy Touch");
-                return CastAtTarget(sb.AutoAttack);
+                if (targetedEnemy != null && !targetedEnemy.IsPlayerAttacking)
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }

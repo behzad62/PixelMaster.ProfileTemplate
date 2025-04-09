@@ -34,7 +34,7 @@ namespace PixelMaster.Core.Behaviors.QuestBehaviors
         private string questName;
         public IReadOnlyList<Vector3> hotspots { get; }
         private IReadOnlyDictionary<string, string> parameters;
-        private readonly PlayerUnit Me = ObjectManager.Instance.Player;
+        private ILocalPlayer Me => ObjectManager.Instance.Player;
         private int lastVisitedHotspot = 0;
         private Vector3 NextHotspot = Vector3.Zero;
         private bool didOnStart = false;

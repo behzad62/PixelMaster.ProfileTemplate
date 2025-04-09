@@ -24,7 +24,7 @@ namespace Plugins.Plugins.AI
             npcBlackLister = new BlackLister<WowGUID>();
         }
         private BlackLister<WowGUID> npcBlackLister;
-        private readonly PlayerUnit Me = ObjectManager.Instance.Player;
+        private ILocalPlayer Me => ObjectManager.Instance.Player;
         private bool didOnStart = false;
         private Status mainStatus = Status.Invalid;
         void OnStart()
@@ -202,7 +202,6 @@ namespace Plugins.Plugins.AI
                     await ActionManager.Instance.PlayerActions.ClearTarget(cancellationToken).ConfigureAwait(false);
                     await ActionManager.Instance.PlayerActions.InteractWithUnit(accessToken, flightMaster, cancellationToken).ConfigureAwait(false);
                 }
-                await ActionManager.Instance.AddonInterface.SetEncodingModeDefault(cancellationToken).ConfigureAwait(false);
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
                 timePassed += 100;
                 if (timeout > 0 && timePassed > timeout)

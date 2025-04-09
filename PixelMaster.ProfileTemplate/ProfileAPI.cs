@@ -100,10 +100,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
             //'vendorIDs' are list of vendors player will try to restock from.
             //restocking only happens if vendor is close enough to the player when bot is doing sell/mail/repair sequence
             //so if none of these vendors are close enough to the player (150 yards range) then restokcing will be skipped
-            Foods = (20, new int[] { 829,1247,1237,6734 }),//Tough Hunk of Bread,
-            Drinks = (20, new [] { 6791, 6928, 6746, 7714, 3934 }),
-            Arrows = (1000, new int[] { 829,1691,1682,7976 }),
-            Bullets = (1000, new int[] { 829,1691,1682,7976 }),
+            Foods = (20, new int[] { 829, 1247, 1237, 6734 }),//Tough Hunk of Bread,
+            Drinks = (20, new[] { 6791, 6928, 6746, 7714, 3934 }),
+            Arrows = (1000, new int[] { 829, 1691, 1682, 7976 }),
+            Bullets = (1000, new int[] { 829, 1691, 1682, 7976 }),
 
             //Keep items are items you want to skip from selling or mailing
             KeepItems = new List<int> {
@@ -136,16 +136,16 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
 
         //Conditional tasks can be defined like this. Note than u should add conditions after () =>
         IF(() => ME.QuestLog.HasQuest(363) && ME.QuestLog.IsCompleted(363));//starts if
-            TurnIn(0, 363, 1569, "Rude Awakening");
-            RunMacro(0, "/dance", "for fun");
+        TurnIn(0, 363, 1569, "Rude Awakening");
+        RunMacro(0, "/dance", "for fun");
         EndIF();//ends if
 
         //You can save custom states inside a profile using SetCheckPoint
         SetCheckpoint("TB FlightMaster Learned");
         //You can later check if check point is set or not set
         IfCheckpointNotSet("TB FlightMaster Learned");
-            //Do something then
-            SetCheckpoint("TB FlightMaster Learned");
+        //Do something then
+        SetCheckpoint("TB FlightMaster Learned");
         EndIF();
         IfCheckpointSet("TB FlightMaster Learned");
         //Skip doing things
@@ -159,10 +159,10 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
 
         //Loops example:
         While(() => ME.QuestLog.IsCompleted(6002) == false);//starts while
-            IF(() => ME.Inventory.HasItem(15710), onChildFailure: TaskFailureBehavior.Continue);
-                UseItem(1, 0, "Cenarion Lunardust", NumTimes: 1, TargetMethod: TargettingMethod.POSITION, Hotspots: "(-2497.33, -1633.08, 91.76)");
-                Wait(0, 10, "Body and Heart");
-            EndIF();
+        IF(() => ME.Inventory.HasItem(15710), onChildFailure: TaskFailureBehavior.Continue);
+        UseItem(1, 0, "Cenarion Lunardust", NumTimes: 1, TargetMethod: TargettingMethod.POSITION, Hotspots: "(-2497.33, -1633.08, 91.76)");
+        Wait(0, 10, "Body and Heart");
+        EndIF();
         EndWhile();//ends while
 
         //Creating groups example
@@ -174,28 +174,28 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //'ReturnSuccess' means finish current group as soon as a task faild (or all tasks done) but return success
         //Last two options are useful when we dont want to stop the profile if i.e. training a skill or buying items fails.
         StartGroup("Train Skills", onChildFailure: TaskFailureBehavior.Continue);
-            SellBuyStuff1(3882, 3882, 3160);
-            IF(() => ME.Class == UnitClass.Warrior);
-                TrainSkill(1, 3153, "6673");
-                EndIF();
-                IF(() => ME.Class == UnitClass.Shaman);
-                TrainSkill(1, 3157, "8017");
-                EndIF();
-                IF(() => ME.Class == UnitClass.Rogue);
-                TrainSkill(1, 3155, "1784");
-                EndIF();
-                IF(() => ME.Class == UnitClass.Hunter);
-                TrainSkill(1, 3154, "1494");
-                EndIF();
-                IF(() => ME.Class == UnitClass.Warlock);
-                TrainSkill(1, 3156, "688");
-                EndIF();
-                IF(() => ME.Class == UnitClass.Priest);
-                TrainSkill(1, 3707, "1243");
-                EndIF();
-                IF(() => ME.Class == UnitClass.Mage);
-                TrainSkill(1, 5884, "1459");
-            EndIF();
+        SellBuyStuff1(3882, 3882, 3160);
+        IF(() => ME.Class == UnitClass.Warrior);
+        TrainSkill(1, 3153, "6673");
+        EndIF();
+        IF(() => ME.Class == UnitClass.Shaman);
+        TrainSkill(1, 3157, "8017");
+        EndIF();
+        IF(() => ME.Class == UnitClass.Rogue);
+        TrainSkill(1, 3155, "1784");
+        EndIF();
+        IF(() => ME.Class == UnitClass.Hunter);
+        TrainSkill(1, 3154, "1494");
+        EndIF();
+        IF(() => ME.Class == UnitClass.Warlock);
+        TrainSkill(1, 3156, "688");
+        EndIF();
+        IF(() => ME.Class == UnitClass.Priest);
+        TrainSkill(1, 3707, "1243");
+        EndIF();
+        IF(() => ME.Class == UnitClass.Mage);
+        TrainSkill(1, 5884, "1459");
+        EndIF();
         EndGroup("Train Skills");// here "Train Skills" only passed to show which groups is ended. It has no other purpose.
 
         //To load nested profiles
@@ -210,7 +210,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //To load a custom behavior
         //This loads this behavior inside the 'Behaviors' folder (inside the bot folder)
         //If your behaviors needs parameters, you can pass parameters dictionary like bellow to your behavior.
-        LoadBehaviorFromFile(@"Relative\Path\Inside\BehaviorsFolder\BehaviorName.cs", parameters: new Dictionary<string, string>() { ["param1"] = "123"});
+        LoadBehaviorFromFile(@"Relative\Path\Inside\BehaviorsFolder\BehaviorName.cs", parameters: new Dictionary<string, string>() { ["param1"] = "123" });
 
         //To see list of supported APIs/Tasks check bellow
         //To see a custome behavior check SampleBehavior.cs file
@@ -232,34 +232,33 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
     }
 
     #region API/Tasks
-    //For the sake of categorization, documentation for the groups of related behaviors are placed inside methods
-
+    //For the sake of categorization, documentation for the groups of related behaviors arpublic void NavigationBehaviors()
     public void NavigationBehaviors()
     {
         //Description:
-        //  Makes player follow the given waypoints. This behavior is useful when you want to record a path (i.e. gathering route) and make the character to traverse it.
+        //  Makes player follow the given waypoints. This behavior is useful when you want to record a path (i.e. gathering route) and make the character traverse it.
         //Parameters:
-        //  Mapid: Map of the waypoints, i.e. 530 - Outland
-        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  MapId: Map of the waypoints, i.e. 530 - Outland
+        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finish.
         //  QuestName (optional): Set the quest name for logging and debugging purposes.
-        //  Waypoints: path waypoints seperated with ','
+        //  Waypoints: Path waypoints separated with ','
         //  StartFromClosestWaypointToPlayer: If set to true, player follows the path from the closest waypoint to the player.
-        //  IsFlyingPath: Set true to one are more recorded waypoints are in the air. i.e. a flying route
+        //  IsFlyingPath: Set true if one or more recorded waypoints are in the air, i.e. a flying route.
         //  CanUseMount: Set true to allow using a ground mount while moving.
         //  IgnoreCombat: Set true to ignore combat while moving to the destination.
         //  IgnoreCombatIfMounted: Set true to ignore combat if mounted while moving to the destination.
         //  AvoidEnemies: Set true to let the bot try to avoid enemies on the path.
-        FollowPath(MapId: 530, QuestId: 9485, QuestName: "Taming the Beast", Waypoints: "(9039.843, -7456.657, 83.334),(9245.210, -7428.717, 35.168)", StartFromClosestWaypointToPlayer: false, IsFlyingPath:true);
+        FollowPath(MapId: 530, QuestId: 9485, QuestName: "Taming the Beast", Waypoints: "(9039.843, -7456.657, 83.334),(9245.210, -7428.717, 35.168)", StartFromClosestWaypointToPlayer: false, IsFlyingPath: true);
 
         //Description:
         //  Moves the character to the last hotspot, starting from the closest hotspot to the player.
         //Parameters:
-        //  Mapid: Map of the hotspot(s), i.e. 530 - Outland
-        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  MapId: Map of the hotspot(s), i.e. 530 - Outland
+        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finish.
         //  QuestName (optional): Set the quest name for logging and debugging purposes.
-        //  Hotspots: One are more hotspots seperated with ','
-        //  MaxDistanceToHotspot: The distance that will be considered it is close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
-        //  CanFly: Set true to let character using flying if supported for this map.
+        //  Hotspots: One or more hotspots separated with ','
+        //  MaxDistanceToHotspot: The distance that will be considered close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
+        //  CanFly: Set true to let character use flying if supported for this map.
         //  CanUseMount: Set true to allow using a ground mount while moving.
         //  IgnoreCombat: Set true to ignore combat while moving to the destination.
         //  IgnoreCombatIfMounted: Set true to ignore combat if mounted while moving to the destination.
@@ -269,11 +268,11 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //Description:
         //  Moves the character to each hotspot defined in the 'Hotspots' starting from the first to the last.
         //Parameters:
-        //  Mapid: Map of the hotspot(s), i.e. 571 - Northrend
-        //  Hotspots: One are more hotspots seperated with ','
+        //  MapId: Map of the hotspot(s), i.e. 571 - Northrend
+        //  Hotspots: One or more hotspots separated with ','
         //  TaskName (optional): Set the task name for logging and debugging purposes.
-        //  CloseEnoughDistance: The distance that will be considered it is close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
-        //  CanFly: Set true to let character using flying if supported for this map.
+        //  CloseEnoughDistance: The distance that will be considered close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
+        //  CanFly: Set true to let character use flying if supported for this map.
         //  CanUseMount: Set true to allow using a ground mount while moving.
         //  CanUseTaxi: Set true to allow taking taxis. Use this option if you know player character knows taxi paths.
         //  IgnoreCombat: Set true to ignore combat while moving to the destination.
@@ -282,12 +281,12 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         MoveTo(MapId: 571, Hotspots: "(9039.843, -7456.657, 83.334),(9245.210, -7428.717, 35.168)", TaskName: "Move to x", CloseEnoughDistance: 3f);
 
         //Description:
-        //  Moves the character on the ground to each hotspot defined in the 'Hotspots' starting from the first to the last. 
+        //  Moves the character on the ground to each hotspot defined in the 'Hotspots' starting from the first to the last.
         //Parameters:
-        //  Mapid: Map of the hotspot(s), i.e. 571 - Northrend
-        //  Hotspots: One are more hotspots seperated with ','
+        //  MapId: Map of the hotspot(s), i.e. 571 - Northrend
+        //  Hotspots: One or more hotspots separated with ','
         //  TaskName (optional): Set the task name for logging and debugging purposes.
-        //  CloseEnoughDistance: The distance that will be considered it is close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
+        //  CloseEnoughDistance: The distance that will be considered close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
         //  CanUseMount: Set true to allow using a ground mount while moving.
         //  CanUseTaxi: Set true to allow taking taxis. Use this option if you know player character knows taxi paths.
         //  IgnoreCombat: Set true to ignore combat while moving to the destination.
@@ -296,12 +295,12 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         RunTo(MapId: 571, Hotspots: "(9039.843, -7456.657, 83.334),(9245.210, -7428.717, 35.168)", TaskName: "Move to x", CloseEnoughDistance: 3f);
 
         //Description:
-        //  Moves the character using flying mount to each hotspot defined in the 'Hotspots' starting from the first to the last. 
+        //  Moves the character using a flying mount to each hotspot defined in the 'Hotspots' starting from the first to the last.
         //Parameters:
-        //  Mapid: Map of the hotspot(s), i.e. 571 - Northrend
-        //  Hotspots: One are more hotspots seperated with ','
+        //  MapId: Map of the hotspot(s), i.e. 571 - Northrend
+        //  Hotspots: One or more hotspots separated with ','
         //  TaskName (optional): Set the task name for logging and debugging purposes.
-        //  CloseEnoughDistance: The distance that will be considered it is close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
+        //  CloseEnoughDistance: The distance that will be considered close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
         //  CanUseMount: Set true to allow using a ground mount while moving.
         //  IgnoreCombat: Set true to ignore combat while moving to the destination.
         //  IgnoreCombatIfMounted: Set true to ignore combat if mounted while moving to the destination.
@@ -309,12 +308,12 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         FlyTo(MapId: 571, Hotspots: "(9039.843, -7456.657, 83.334),(9245.210, -7428.717, 35.168)", TaskName: "Move to x", CloseEnoughDistance: 3f);
 
         //Description:
-        //  Moves to the start Flight Master and takes taxi to the end Flight Master if player learned the taxi path.
+        //  Moves to the start Flight Master and takes a taxi to the end Flight Master if the player learned the taxi path.
         //Parameters:
         //  StartFlightMasterId: Start Flight Master NPC id
         //  EndFlightMasterId: End Flight Master NPC id
         //  TaskName (optional): Set the task name for logging and debugging purposes.
-        //  CloseEnoughDistance: The distance that will be considered it is close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
+        //  CloseEnoughDistance: The distance that will be considered close enough to the hotspot and bot will stop moving. Don't set this value to numbers smaller than 1.0f
         //  CanUseMount: Set true to allow using a ground mount while moving.
         //  CanUseFlyingMount: Set true to allow using a flying mount while moving.
         //  IgnoreCombat: Set true to ignore combat while moving to the destination.
@@ -325,15 +324,15 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //Description:
         //  Moves the character to the 'Hotspot', then faces the 'Facelocation' and starts moving forward for the given 'MoveTime'.
         //Parameters:
-        //  Mapid: Map of the hotspot(s), i.e. 530 - Outland
-        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  MapId: Map of the hotspot(s), i.e. 530 - Outland
+        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finish.
         //  Hotspot: The starting point. Player moves to this location then performs moving.
         //  Facelocation: The position to face before starting to move forward.
-        //  AngleThreshold: the facing angle accuracy threshold.
-        //  MoveTime: The amount of time that the character moves forward before stops moving.
+        //  AngleThreshold: The facing angle accuracy threshold.
+        //  MoveTime: The amount of time that the character moves forward before stopping.
         //  QuestName: Sets the quest name for logging and debugging purposes.
-        //  Dismount: Set to true to force the character to dismount when moves forward.
-        //  CanFly: Set true to let character using flying if supported for this map while going to the start position.
+        //  Dismount: Set to true to force the character to dismount when moving forward.
+        //  CanFly: Set true to let character use flying if supported for this map while going to the start position.
         //  CanUseMount: Set true to allow using a ground mount while moving to the start position.
         //  CanUseTaxi: Set true to allow taking taxis. Use this option if you know player character knows taxi paths.
         //  IgnoreCombat: Set true to ignore combat while moving to the start position.
@@ -342,17 +341,17 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         MoveForward(MapId: 1, QuestId: 0, Hotspot: "(1,2,3)", Facelocation: "(4,5,6)", AngleThreshold: 5, MoveTime: 1000);
 
         //Description:
-        //  Will search for and moves the player to the nearest object then finishes the behavior,
-        //  It can be useful when the objects arent interactable and you need to use an item or cast spell near the object.
+        //  Searches for and moves the player to the nearest object then finishes the behavior.
+        //  It can be useful when the objects aren't interactable and you need to use an item or cast a spell near the object.
         //Parameters:
-        //  Mapid: Map of the hotspot(s), i.e. 530 - Outland
-        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finishes.
+        //  MapId: Map of the hotspot(s), i.e. 530 - Outland
+        //  QuestId: Quest id for this task. If greater than 0, then player only moves if has the quest and quest is not completed, else will return success and finish.
         //  ObjectIds: List of objects to search for.
         //  QuestName: Sets the quest name for logging and debugging purposes.
-        //  ObjectiveIndex: If set bot checks if objective is already completed before doing this behavior.
-        //  MinDistance: the minimum distance to the object when player moves to it.
-        //  MaxDistance: the maximum distance to the object when player moves to it.
-        //  CollectionDistance: Player only moves to the objects closer than this distance to the player
+        //  ObjectiveIndex: If set, bot checks if the objective is already completed before doing this behavior.
+        //  MinDistance: The minimum distance to the object when the player moves to it.
+        //  MaxDistance: The maximum distance to the object when the player moves to it.
+        //  CollectionDistance: Player only moves to the objects closer than this distance to the player.
         MoveToNearObject(MapId: 1, QuestId: 0, ObjectIds: "1235,4451", CollectionDistance: 50);
     }
 
@@ -612,7 +611,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //  IgnoreCombat: Set true to ignore combat while not in range of the hotspots.
         //  IgnoreCombatIfMounted: Set true to ignore combat while mounted and not in the range of hotspots.
         //  AvoidEnemies: Set true to let the bot try avoiding enemies while not in the range of hotspots.
-        ClearArea(MapId: 0, MobIDs: "299,69", Hotspots:"(1f,2f,3f)(4f,5f,6f)" ,TaskName: "Grind to level 4.5", KillAllMobs: false, LootMobs: false, PullRange: 85, HotSpotRange: 55);
+        ClearArea(MapId: 0, MobIDs: "299,69", Hotspots: "(1f,2f,3f)(4f,5f,6f)", TaskName: "Grind to level 4.5", KillAllMobs: false, LootMobs: false, PullRange: 85, HotSpotRange: 55);
     }
 
     public void InteractBehaviors()
@@ -830,7 +829,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              Identifies the text of this task to show in logs when running. 
         //              Example RunAction(() => BottingSessionManager.Instance.DynamicSettings.CombatDisabled = false, "Re enable combat");  "Diasble combat behavior" is the text to show in logs
         RunAction(() => BottingSessionManager.Instance.DynamicSettings.CombatDisabled = true, ActionName: "Diasble combat behavior");
-    
+
         //Description:
         //  Performs an async task. Can be used to call async bot methods.
         //BEHAVIOR ATTRIBUTES:
@@ -891,7 +890,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          AvoidEnemies
         //              [optional; Default: true]
         //              Set true to let the bot try to avoid enemies on the path.
-        TrainSkill(530, 16272,  "13163,1978,3044,1130,5116,14280,3127,13165,13549,14281,20736");
+        TrainSkill(530, 16272, "13163,1978,3044,1130,5116,14280,3127,13165,13549,14281,20736");
 
         //BEHAVIOR Description:
         //  Trains all the available skills at the trainer. Can be class spells or other skills i.e. professions. Accepts list of spells to not train.
@@ -1278,7 +1277,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              when not given, bot will look at PixelMaster Database for hotspots for given trainer
         var ME = ObjectManager.Instance.Player;
         IF(() => ME.Class == UnitClass.Hunter && !ME.HasActivePet);
-            TamePet(530, 15652);
+        TamePet(530, 15652);
         EndIF();
     }
 
@@ -1957,7 +1956,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //If you know that you got a key in your profile your can use this behavior so Bot will be informed of the possible new ways openning.
         RefreshLockedDoors();
     }
-#endregion
+    #endregion
 
 
 

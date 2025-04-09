@@ -13,12 +13,15 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
+using AdvancedCombatClasses.Settings.Cata;
+using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
     public class MageFire : IPMRotation
     {
-        private MageSettings settings => SettingsManager.Instance.Mage;
+        private MageSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).Mage;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr };
         public short Spec => 2;
         public UnitClass PlayerClass => UnitClass.Mage;
         // 0 - Melee DPS : Will try to stick to the target
@@ -34,7 +37,7 @@ namespace CombatClasses
         {
             var om = ObjectManager.Instance;
             var player = om.Player;
-            var sb = player.SpellBook;
+            var sb = om.SpellBook;
             var targetedEnemy = om.AnyEnemy;
             if (targetedEnemy != null)
             {
@@ -52,25 +55,25 @@ namespace CombatClasses
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
             var player = om.Player;
-            var sb = player.SpellBook;
-            var inv = player.Inventory;
-            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
+            var sb = om.SpellBook;
+            var inv = om.Inventory;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies.ToList();
 
             // Defensive stuff
             if (player.HasAura("Ice Block"))
                 return null;
             if(!player.HasAura("Molten Armor") && IsSpellReady("Molten Armor"))
-                return CastAtPlayerLocation("Molten Armor", isHarmfulSpell: false);
+                return CastWithoutTargeting("Molten Armor", isHarmfulSpell: false);
             if (player.HealthPercent < 20 && !player.HasAura("Hypothermia") && IsSpellReady("Ice Block"))
-                return CastAtPlayerLocation("Ice Block", isHarmfulSpell: false);
+                return CastWithoutTargeting("Ice Block", isHarmfulSpell: false);
 
             // Cooldowns
             if ((player.PowerPercent < 30 || IsSpellCasting("Evocation") || player.HealthPercent < 50 && player.HasAura("Glyph of Evocation")) && IsSpellReadyOrCasting("Evocation"))
-                return CastAtPlayerLocation("Evocation", isHarmfulSpell: false);
+                return CastWithoutTargeting("Evocation", isHarmfulSpell: false);
             if (player.HealthPercent <= 80 && !player.HasAura("Mage Ward") && IsSpellReady("Mage Ward"))
-                return CastAtPlayerLocation("Mage Ward", isHarmfulSpell: false);
+                return CastWithoutTargeting("Mage Ward", isHarmfulSpell: false);
             if (player.HealthPercent <= 60 && !player.HasAura("Mana Shield") && IsSpellReady("Mana Shield"))
-                return CastAtPlayerLocation("Mana Shield", isHarmfulSpell: false);
+                return CastWithoutTargeting("Mana Shield", isHarmfulSpell: false);
 
             if (player.HealthPercent < 45)
             {
@@ -97,12 +100,12 @@ namespace CombatClasses
                     return UseItem(manaPotion);
             }
 
-            if (player.IsFleeingFromTheFight)
+            if (om.IsPlayerFleeingFromCombat)
             {
                 if (GetUnitsWithinArea(inCombatEnemies, player.Position, 8).Count >= 1 && IsSpellReady("Frost Nova"))
-                    return CastAtPlayerLocation("Frost Nova");
+                    return CastWithoutTargeting("Frost Nova");
                 if (IsSpellReady("Blink"))
-                    return CastAtPlayerLocation("Blink", isHarmfulSpell: false);
+                    return CastWithoutTargeting("Blink", isHarmfulSpell: false);
                 if (IsSpellReady("Ring of Frost"))
                     return CastAtGround(player.Position, "Ring of Frost");
                 return null;
@@ -122,16 +125,16 @@ namespace CombatClasses
 
             //}
             //AoE handling
+            var inMeleeRange = inCombatEnemies.Count(u => u.IsTargetingPlayer && u.IsInPlayerMeleeRange);
             if (inCombatEnemies.Count > 1)
             {
                 if (player.Race == UnitRace.Troll && IsSpellReady("Berserking"))
-                    return CastAtPlayerLocation("Berserking", isHarmfulSpell: false);
+                    return CastWithoutTargeting("Berserking", isHarmfulSpell: false);
                 if ((inCombatEnemies.Count(u => u.IsTargetingPlayer || u.IsTargetingPlayerPet) >= 3 || (targetedEnemy?.IsElite ?? false)) && IsSpellReady("Mirror Image"))
                     return CastAtTarget("Mirror Image");
-                if (targetedEnemy != null && inCombatEnemies.Count > 2 && IsSpellReady("Living Bomb") && !targetedEnemy.HasDeBuff("Living Bomb"))
+                if (targetedEnemy != null && inCombatEnemies.Count > 2 && IsSpellReady("Living Bomb") && !targetedEnemy.HasDebuff("Living Bomb"))
                     return CastAtTarget("Living Bomb");
-                var inMeleeRange = inCombatEnemies.Count(u => u.IsTargetingPlayer && u.IsInMeleeRange);
-                if (IsSpellCasting("Flamestrike") || inCombatEnemies.Count(e=>!e.HasDeBuff("Flamestrike")) > 4 && inMeleeRange < 3)
+                if (IsSpellCasting("Flamestrike") || inCombatEnemies.Count(e=>!e.HasDebuff("Flamestrike")) > 4 && inMeleeRange < 3)
                 {
                     if (IsSpellCasting("Flamestrike"))
                         return CastAtGround(LastGroundSpellLocation, "Flamestrike");
@@ -144,28 +147,30 @@ namespace CombatClasses
                             LogInfo($"{numEnemiesInAoE} enemies in Flamestrike!");
                     }
                 }
-                if (polyTarget != null && IsSpellCasting("Polymorph"))
-                    return CastAtUnit(polyTarget, "Polymorph", isHarmfulSpell: true, facing: SpellFacingFlags.None);
-                if (!player.IsMoving && player.HealthPercent < 55 && inMeleeRange < 3 && IsSpellReady("Polymorph") && !inCombatEnemies.Any(e=> e.HasAura("Polymorph", true)))
-                {
-                    var polymorphCandidates = inCombatEnemies.Where(e => IsViableForPolymorph(e, targetedEnemy)).ToList().OrderByDescending(u => u.HealthPercent);
-                    if (polymorphCandidates.Any())
-                    {
-                        polyTarget = polymorphCandidates.First();
-                        return CastAtUnit(polyTarget, "Polymorph", isHarmfulSpell: true, facing: SpellFacingFlags.None);
-                    }
-                }
             }
             if (!player.IsCasting)
             {
                 var inFrontCone = GetUnitsInFrontOfPlayer(inCombatEnemies, 60, 8);
                 if (inFrontCone.Count >= 1 && !inFrontCone.Any(e => e.HasAura("Polymorph")) && IsSpellReady("Dragon's Breath"))
-                    return CastAtPlayerLocation("Dragon's Breath");
+                    return CastWithoutTargeting("Dragon's Breath");
                 var closeEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
                 if (!closeEnemies.Any(e => e.HasAura("Polymorph")) && closeEnemies.Where(u => !u.HasAura("Freeze") &&
                                                 !u.HasAura("Frost Nova") && !u.HasAura("Dragon's Breath") && (u.CCs & ControlConditions.CC) == 0).Count() >= 1 && IsSpellReady("Frost Nova"))
-                    return CastAtPlayerLocation("Frost Nova");
+                    return CastWithoutTargeting("Frost Nova");
             }
+
+            if (polyTarget != null && IsSpellCasting("Polymorph") && !inCombatEnemies.Any(e => e.HasDebuff("Polymorph")) && inMeleeRange <= 2)
+                return CastAtUnit(polyTarget, "Polymorph", isHarmfulSpell: true, facing: SpellFacingFlags.None);
+            else if (inCombatEnemies.Count > 2 && !player.IsMoving && player.HealthPercent < 55 && inMeleeRange <= 2 && IsSpellReady("Polymorph") && !inCombatEnemies.Any(e => e.HasAura("Polymorph", true)))
+            {
+                var polymorphCandidates = inCombatEnemies.Where(e => IsViableForPolymorph(e, targetedEnemy)).ToList().OrderByDescending(u => u.HealthPercent);
+                if (polymorphCandidates.Any())
+                {
+                    polyTarget = polymorphCandidates.First();
+                    return CastAtUnit(polyTarget, "Polymorph", isHarmfulSpell: true, facing: SpellFacingFlags.None);
+                }
+            }
+            polyTarget = null;
 
             //Targeted enemy
             if (targetedEnemy != null)
@@ -174,9 +179,9 @@ namespace CombatClasses
                     return CastAtTarget("Counterspell");
                 if (IsSpellReadyOrCasting("Fire Blast") && player.AuraStacks("Impact") > 0)
                     return CastAtTarget("Fire Blast");
-                if (!targetedEnemy.IsInCombat)
+                if (!targetedEnemy.IsInCombat && !targetedEnemy.IsTrainingDummy)
                 {
-                    if (IsSpellReady("Living Bomb") && !targetedEnemy.HasDeBuff("Living Bomb"))
+                    if (IsSpellReady("Living Bomb") && !targetedEnemy.HasDebuff("Living Bomb"))
                         return CastAtTarget("Living Bomb");
                     if (IsSpellReady("Fire Blast"))
                         return CastAtTarget("Fire Blast");
@@ -190,17 +195,14 @@ namespace CombatClasses
                     return CastAtTarget("Combustion");
                 if(IsSpellReadyOrCasting("Scorch") && (player.IsMoving && player.HasAura("Firestarter", true) || targetedEnemy.AuraRemainingTime("Critical Mass").TotalSeconds < 1 && player.HasAura("Critical Mass", true)))
                     return CastAtTarget("Scorch");
-                if(IsSpellReadyOrCasting("Pyroblast") && player.HasAura(48108))
+                if(IsSpellReadyOrCasting("Pyroblast") && player.HasBuff("Hot Streak"))
                     return CastAtTarget("Pyroblast");
-                if (player.AuraCharges("Hot Streak")== 1 && !IsSpellReady("Pyroblast"))
-                    LogInfo("Pyroblast not ready!");
-                if (player.AuraCharges("Hot Streak") == 1)
-                    LogWarning("Hot Streak!!!!");
+
                 if (IsSpellReadyOrCasting("Frostfire Bolt") && player.AuraStacks("Fireball!") > 0)
                     return CastAtTarget("Frostfire Bolt");
                 if (IsSpellReady("Flame Orb"))
-                    return CastAtTarget("Flame Orb");
-                if ((targetedEnemy.IsElite || targetedEnemy.HealthPercent >= 50) && IsSpellReady("Living Bomb") && !targetedEnemy.HasDeBuff("Living Bomb"))
+                    return CastWithoutTargeting("Flame Orb");
+                if ((targetedEnemy.IsElite || targetedEnemy.HealthPercent >= 50) && IsSpellReady("Living Bomb") && !targetedEnemy.HasDebuff("Living Bomb"))
                     return CastAtTarget("Living Bomb");
                 if(player.IsMoving && IsSpellReady("Fire Blast"))
                     return CastAtTarget("Fire Blast");
@@ -208,7 +210,7 @@ namespace CombatClasses
                     return CastAtTarget("Fireball");
                 if (IsSpellReady("Shoot"))
                     return CastAtTarget("Shoot");
-                else
+                else if(!player.IsCasting && !targetedEnemy.IsPlayerAttacking)
                     return CastAtTarget(sb.AutoAttack);
             }
             return null;
@@ -234,14 +236,14 @@ namespace CombatClasses
             if (!unit.IsInCombat)
                 return false;
 
-            if (unit.HasDeBuff("Living Bomb"))
+            if (unit.HasDebuff("Living Bomb"))
                 return false;
 
             if (!unit.IsTargetingPlayer && !unit.IsTargetingPlayerPet && !unit.IsTargetingMyPartyMember)
                 return false;
             var group = ObjectManager.Instance.PlayerGroup;
 
-            if (group != null && group.PlayerGroupMembers.Any(p => unit.IsSameAs(p.Target)))
+            if (group != null && group.MemberGUIDs.Any(p => unit.WowGuid == p))
                 return false;
 
             return true;

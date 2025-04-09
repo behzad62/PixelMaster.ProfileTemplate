@@ -13,12 +13,15 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
+using AdvancedCombatClasses.Settings.Cata;
+using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
     public class PaladinRet : IPMRotation
     {
-        private PaladinSettings settings => SettingsManager.Instance.Paladin;
+        private PaladinSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).Paladin;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr };
         public short Spec => 3;
         public UnitClass PlayerClass => UnitClass.Paladin;
         // 0 - Melee DPS : Will try to stick to the target
@@ -34,7 +37,7 @@ namespace CombatClasses
         {
             var om = ObjectManager.Instance;
             var player = om.Player;
-            var sb = player.SpellBook;
+            var sb = om.SpellBook;
             var targetedEnemy = om.AnyEnemy;
 
             if (targetedEnemy != null)
@@ -53,16 +56,15 @@ namespace CombatClasses
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
             var player = om.Player;
-            var sb = player.SpellBook;
-            var inv = player.Inventory;
-            var comboPoints = player.SecondaryPower;
+            var sb = om.SpellBook;
+            var inv = om.Inventory;
 
             if (!player.HasAura("Seal of Truth") && IsSpellReady("Seal of Truth"))
-                return CastAtPlayerLocation("Seal of Truth", isHarmfulSpell:false); 
+                return CastWithoutTargeting("Seal of Truth", isHarmfulSpell:false); 
             if (!player.HasAura("Retribution Aura") && IsSpellReady("Retribution Aura"))
-                return CastAtPlayerLocation("Retribution Aura", isHarmfulSpell: false);
+                return CastWithoutTargeting("Retribution Aura", isHarmfulSpell: false);
             if (!player.HasAura("Blessing of Might") && IsSpellReady("Blessing of Might"))
-                return CastAtPlayerLocation("Blessing of Might", isHarmfulSpell: false);
+                return CastWithoutTargeting("Blessing of Might", isHarmfulSpell: false);
             if (player.HealthPercent < 45)
             {
                 var healthStone = inv.GetHealthstone();
@@ -90,10 +92,10 @@ namespace CombatClasses
             if (player.PowerPercent < 20)
                 return CastAtPlayer("Divine Plea");
 
-            if (player.IsFleeingFromTheFight)
+            if (om.IsPlayerFleeingFromCombat)
             {
                 if (IsSpellReady("Divine Shield"))
-                    return CastAtPlayerLocation("Divine Shield", isHarmfulSpell: false);
+                    return CastWithoutTargeting("Divine Shield", isHarmfulSpell: false);
                 return null;
             }
             //Burst
@@ -102,24 +104,24 @@ namespace CombatClasses
 
             //}
             //AoE handling
-            List<WowUnit>? inCombatEnemies = om.InCombatEnemies;
+            List<WowUnit>? inCombatEnemies = om.InCombatEnemies.ToList();
             if (inCombatEnemies.Count > 1)
             {
                 var nearbyEnemies = GetUnitsWithinArea(inCombatEnemies, player.Position, 8);
                 if (nearbyEnemies.Count >= settings.ConsecrationCount)
                 {
                     if (IsSpellReady("Zealotry"))
-                        return CastAtPlayerLocation("Zealotry", isHarmfulSpell: false);
+                        return CastWithoutTargeting("Zealotry", isHarmfulSpell: false);
                     if (IsSpellReady("Avenging Wrath"))
-                        return CastAtPlayerLocation("Avenging Wrath", isHarmfulSpell: false);
+                        return CastWithoutTargeting("Avenging Wrath", isHarmfulSpell: false);
                     if (IsSpellReady("Guardian of Ancient Kings"))
-                        return CastAtPlayerLocation("Guardian of Ancient Kings", isHarmfulSpell: false);
+                        return CastWithoutTargeting("Guardian of Ancient Kings", isHarmfulSpell: false);
                     if (IsSpellReady("Divine Storm"))
-                        return CastAtPlayerLocation("Divine Storm", isHarmfulSpell: true);
+                        return CastWithoutTargeting("Divine Storm", isHarmfulSpell: true);
                     if (IsSpellReady("Consecration"))
-                        return CastAtPlayerLocation("Consecration", isHarmfulSpell: true);
+                        return CastWithoutTargeting("Consecration", isHarmfulSpell: true);
                     if (IsSpellReady("Holy Wrath"))
-                        return CastAtPlayerLocation("Holy Wrath", isHarmfulSpell: true);
+                        return CastWithoutTargeting("Holy Wrath", isHarmfulSpell: true);
                 }
             }
 
@@ -138,13 +140,13 @@ namespace CombatClasses
                 if (targetedEnemy.IsElite)
                 {
                     if (IsSpellReady("Zealotry"))
-                        return CastAtPlayerLocation("Zealotry", isHarmfulSpell: false);
+                        return CastWithoutTargeting("Zealotry", isHarmfulSpell: false);
                     if (IsSpellReady("Avenging Wrath"))
-                        return CastAtPlayerLocation("Avenging Wrath", isHarmfulSpell: false);
+                        return CastWithoutTargeting("Avenging Wrath", isHarmfulSpell: false);
                 }
 
                 if (player.SecondaryPower == 3 && IsSpellReady("Inquisition"))
-                    return CastAtPlayerLocation("Inquisition");
+                    return CastWithoutTargeting("Inquisition");
                 if (IsSpellReady("Hammer of Justice") && player.HealthPercent <= 40)
                     return CastAtTarget("Hammer of Justice");
                 if (IsSpellReady("Crusader Strike"))
@@ -157,7 +159,8 @@ namespace CombatClasses
                     return CastAtTarget("Exorcism");
                 if (IsSpellReady("Judgement"))
                     return CastAtTarget("Judgement");
-                return CastAtTarget(sb.AutoAttack);
+                if (!player.IsCasting && !targetedEnemy.IsPlayerAttacking)
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }

@@ -13,23 +13,23 @@ using System.Numerics;
 using System;
 using System.Linq;
 using AdvancedCombatClasses.Settings;
-using AdvancedCombatClasses.Settings.Cata;
+using AdvancedCombatClasses.Settings.Era;
 using PixelMaster.Server.Shared;
 
 namespace CombatClasses
 {
-    public class PriestHoly : IPMRotation
+    public class SoDPriestDisc : IPMRotation
     {
-        private PriestSettings settings => ((CataCombatSettings)SettingsManager.Instance.Settings).Priest;
-        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Cata, WowVersion.Classic_Cata_Ptr };
-        public short Spec => 2;
+        private PriestSettings settings => ((EraCombatSettings)SettingsManager.Instance.Settings).Priest;
+        public IEnumerable<WowVersion> SupportedVersions => new[] { WowVersion.Classic_Era, WowVersion.Classic_Ptr };
+        public short Spec => 1;
         public UnitClass PlayerClass => UnitClass.Priest;
         // 0 - Melee DPS : Will try to stick to the target
         // 1 - Range: Will try to kite target if it got too close.
         // 2 - Healer: Will try to target party/raid members and get in range to heal them
         // 3 - Tank: Will try to engage nearby enemies who targeting alies
         public CombatRole Role => CombatRole.Healer;
-        public string Name => "[Cata][PvE]Prist-Holy";
+        public string Name => "[SoD][PvE]Prist-Disc";
         public string Author => "PixelMaster";
         public string Description => "General PvE";
         public List<RotationMode> AvailableRotations => new() { RotationMode.Auto, RotationMode.Normal, RotationMode.Instance, RotationMode.PvP };
@@ -47,6 +47,8 @@ namespace CombatClasses
                     return CastAtPlayer("Power Word: Shield");
                 if (IsSpellReadyOrCasting("Holy Word: Chastise"))
                     return CastAtTarget("Holy Word: Chastise");
+                if (IsSpellReadyOrCasting("Penance"))
+                    return CastAtTarget("Penance");
                 if (IsSpellReadyOrCasting("Holy Fire"))
                     return CastAtTarget("Holy Fire");
                 if (IsSpellReadyOrCasting("Smite"))
@@ -60,24 +62,24 @@ namespace CombatClasses
             var om = ObjectManager.Instance;
             var dynamicSettings = BottingSessionManager.Instance.DynamicSettings;
             var targetedEnemy = om.AnyEnemy;
+            var targetedFriendly = om.AnyFriend;
             var player = om.Player;
             var sb = om.SpellBook;
             var inv = om.Inventory;
-            var comboPoints = player.ComboPoints;
             //List<WowUnit>? inCombatEnemies = inCombatEnemies = om.InCombatEnemies;
             var group = om.PlayerGroup;
             var isInBG = ObjectManager.Instance.CurrentMap.MapType == MapType.Battleground;
 
             if (targetedEnemy != null && player.PowerPercent <= settings.ShadowfiendMana && IsSpellReady("Shadowfiend"))
                 return CastAtTarget("Shadowfiend", facing: SpellFacingFlags.None);
-            if (player.HealthPercent < 50 && IsSpellReady("Desperate Prayer"))
+            if ((player.PowerPercent <= 60 || player.HealthPercent < 15) && IsSpellReady("Dispersion") && !player.HasAura("Dispersion", true))
+                return CastWithoutTargeting("Dispersion", isHarmfulSpell:false);
+            if (player.HealthPercent < 15 && IsSpellReady("Desperate Prayer"))
                 return CastAtPlayer("Desperate Prayer");
             if (player.PowerPercent <= 15 && !IsSpellReady("Shadowfiend") && IsSpellReadyOrCasting("Hymn of Hope"))
                 return CastAtPlayer("Hymn of Hope");
             if (group != null && group.Members.Count(p => group.IsGroupMemberOnline(p.WowGuid) && p.HealthPercent <= settings.DivineHymnHealth) >= settings.DivineHymnCount && IsSpellReadyOrCasting("Divine Hymn"))
                 CastWithoutTargeting("Divine Hymn", isHarmfulSpell: false);
-            if (IsSpellReady("Chakra"))
-                return CastAtPlayer("Chakra");
 
             if (player.HealthPercent <= 35)
             {
@@ -88,101 +90,49 @@ namespace CombatClasses
 
             if (group != null)
             {
-                var groupTanks = group.Tanks;
-                var healTargets = group.Members.Where(FilterUnits).ToList();
-                if (healTargets.Any())
+                if (targetedFriendly != null && IsSpellReadyOrCasting("Circle of Healing")
+                              && group.GetMembersInRaidGroup(group.GetRaidGroupIndex(targetedFriendly.WowGuid)).Count(m => m.HealthPercent <= 65 && Vector3.DistanceSquared(m.Position, targetedFriendly.Position) < 40 * 40) >= 3)
                 {
-                    healTargets.Sort(new HealPriority() { IsInBG = isInBG, Tanks = groupTanks });
-                    var healTarget = healTargets.First();
-                    if (IsSpellReady("Prayer of Mending") && groupTanks.Any(t => t.IsSameAs(healTarget)) && healTarget.AuraStacks("Prayer of Mending", true) < 3 && groupTanks.Where(t => !t.IsSameAs(healTarget)).All(t => !t.HasAura("Prayer of Mending", true)))
-                        return CastAtUnit(healTarget, "Prayer of Mending", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if((healTarget.IsPlayer || healTarget.IsLocalPlayer) && groupTanks.Any(t => t.IsSameAs(healTarget)) && !healTarget.HasAura("Renew", true) && IsSpellReady("Renew"))
-                        return CastAtUnit(healTarget, "Renew", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if(IsSpellReadyOrCasting("Prayer of Healing") && player.AuraStacks("Serendipity") >= 2 
-                        && group.GetMembersInRaidGroup(group.GetRaidGroupIndex(healTarget.WowGuid)).Count(m=> m.HealthPercent <= settings.PrayerOfHealingSerendipityHealth && Vector3.DistanceSquared(m.Position, healTarget.Position) < 30 * 30) >= settings.PrayerOfHealingSerendipityCount)
-                        return CastAtUnit(healTarget, "Prayer of Healing", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if(IsSpellReady("Circle of Healing") && healTargets.Count(m => m.HealthPercent <= settings.CircleOfHealingHealth && Vector3.DistanceSquared(m.Position, healTarget.Position) < 30 * 30) >= settings.CircleOfHealingCount)
-                        return CastAtUnit(healTarget, "Circle of Healing", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if (IsSpellReady("Holy Word: Sanctuary"))
-                    {
-                        if (IsSpellCasting("Holy Word: Sanctuary") && LastGroundSpellLocation != Vector3.Zero)
-                            return CastAtGround(LastGroundSpellLocation, "Holy Word: Sanctuary", isHarmfulSpell: false);
-                        var AoEHealLoc = GetBestAoELocation(healTargets.Where(t => t.DistanceSquaredToPlayer <= 40 * 40), 10, out int numUnitsInAoE);
-                        if (numUnitsInAoE >= 4)
-                        {
-                            return CastAtGround(AoEHealLoc, "Holy Word: Sanctuary", isHarmfulSpell: false);
-                        }
-                    }
-                    if (IsSpellReadyOrCasting("Holy Word: Serenity") && groupTanks.Any(t => t.IsSameAs(healTarget)))
-                        return CastAtUnit(healTarget, "Holy Word: Serenity", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if (IsSpellReady("Guardian Spirit") && healTarget.HealthPercent <= 10)
-                        return CastAtUnit(healTarget, "Guardian Spirit", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if (IsSpellReady("Lightwell"))
-                    {
-                        if (IsSpellCasting("Lightwell") && LastGroundSpellLocation != Vector3.Zero)
-                            return CastAtGround(LastGroundSpellLocation, "Lightwell", isHarmfulSpell: false);
-                        var LightwellPos = NavigationHelpers.GetTargetPoint(player.Position, 15f, NavigationHelpers.GetTargetVectorYaw(player.Position, healTarget.Position), true);
-                        if (NavigationHelpers.IsPointOnGround(LightwellPos, (uint)om.CurrentMap.MapID, 1))
-                        {
-                            return CastAtGround(LightwellPos, "Lightwell", isHarmfulSpell: false);
-                        }
-                        else
-                            return CastAtGround(player.Position, "Lightwell", isHarmfulSpell: false);
-                    }
-                    if(healTarget.HealthPercent <= 90 && player.HasAura("Surge of Light") && IsSpellReadyOrCasting("Flash Heal"))
-                        return CastAtUnit(healTarget, "Flash Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if (healTarget.HealthPercent <= settings.HolyFlashHeal && IsSpellReadyOrCasting("Flash Heal"))
-                        return CastAtUnit(healTarget, "Flash Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if (healTarget.HealthPercent <= settings.HolyGreaterHeal && IsSpellReadyOrCasting("Greater Heal"))
-                        return CastAtUnit(healTarget, "Greater Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                    if (healTarget.HealthPercent <= settings.HolyHeal && IsSpellReadyOrCasting("Heal"))
-                        return CastAtUnit(healTarget, "Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
-                }
-                else
-                {
-                    if (targetedEnemy != null && IsSpellReadyOrCasting("Smite") && player.PowerPercent > 70)
-                        return CastAtTarget("Smite");
+                    if (IsSpellReady("Inner Focus"))
+                        return CastWithoutTargeting("Inner Focus", isHarmfulSpell: false);
+                    return CastAtTarget("Circle of Healing", isHarmfulSpell: false, facing: SpellFacingFlags.None);
                 }
             }
-
-            if (om.IsPlayerFleeingFromCombat)
+            if(targetedFriendly != null)
             {
-
-                return null;
+                if (targetedFriendly.IsInCombat && IsSpellReady("Power Word: Shield") && !targetedFriendly.HasAura("Weakened Soul"))
+                    return CastAtUnit(targetedFriendly, "Power Word: Shield", isHarmfulSpell: false, facing: SpellFacingFlags.None);
+                if (targetedFriendly.IsInCombat && IsSpellReady("Pain Supression") && targetedFriendly.HealthPercent < settings.PainSuppression)
+                    return CastAtTarget("Pain Supression", isHarmfulSpell: false, facing: SpellFacingFlags.None);
+                if (IsSpellReadyOrCasting("Penance") && targetedFriendly.HealthPercent < settings.PenanceHealth)
+                    return CastAtTarget("Penance", isHarmfulSpell: false, facing: SpellFacingFlags.FaceTarget);
+                if (targetedFriendly.HealthPercent <= settings.HolyFlashHealHealth && IsSpellReadyOrCasting("Flash Heal"))
+                {
+                    if (IsSpellReady("Inner Focus"))
+                        return CastWithoutTargeting("Inner Focus", isHarmfulSpell: false);
+                    return CastAtTarget("Flash Heal", isHarmfulSpell: false, facing: SpellFacingFlags.None);
+                }
+                if (targetedFriendly.HealthPercent < 90 && IsSpellReady("Prayer of Mending") && !targetedFriendly.HasAura("Prayer of Mending", true))
+                    return CastAtTarget("Prayer of Mending", isHarmfulSpell: false, facing: SpellFacingFlags.None);
+                if (IsSpellReady("Dispel") && targetedFriendly.Debuffs.Any(d => d.Spell != null && d.Spell.DispelType == SpellDispelType.Magic))
+                    return CastAtTarget("Dispel", isHarmfulSpell: false, facing: SpellFacingFlags.None);
             }
-            //if (player.HealthPercent < 30)
-            //{
-
-            //}
-
-            //Burst
-            //if (dynamicSettings.BurstEnabled)
-            //{
-
-            //}
-            //AoE handling
-            //if (inCombatEnemies.Count > 1)
-            //{
-            //    if (dynamicSettings.AllowBurstOnMultipleEnemies && inCombatEnemies.Count > 2)
-            //    {
-
-            //    }
-            //}
-
             //Targeted enemy
-            if (targetedEnemy != null)
+            else if (targetedEnemy != null)
             {
                 if (om.CurrentMap.MapType == MapType.Normal || player.PowerPercent > 70 || group is null)
                 {
                     if (IsSpellReady("Shadow Word: Pain") && !targetedEnemy.HasAura("Shadow Word: Pain", true) && targetedEnemy.HealthPercent > 15)
                         return CastAtTarget("Shadow Word: Pain");
-                    if (IsSpellReadyOrCasting("Holy Word: Chastise"))
-                        return CastAtTarget("Holy Word: Chastise");
+                    if (IsSpellReadyOrCasting("Penance"))
+                        return CastAtTarget("Penance");
                     if (IsSpellReadyOrCasting("Holy Fire"))
                         return CastAtTarget("Holy Fire");
                     if (IsSpellReadyOrCasting("Smite"))
                         return CastAtTarget("Smite");
                 }
+                if (!player.IsCasting && !targetedEnemy.IsPlayerAttacking && targetedEnemy.IsInPlayerMeleeRange)
+                    return CastAtTarget(sb.AutoAttack);
             }
             return null;
         }
@@ -224,7 +174,7 @@ namespace CombatClasses
                 unitScore -= 50f;
             }
             //If unit is not a player unit, then it has lower prio
-            if(!unit.IsPlayer && !unit.IsLocalPlayer)
+            if (!unit.IsPlayer && !unit.IsLocalPlayer)
             {
                 unitScore -= 200f;
             }
