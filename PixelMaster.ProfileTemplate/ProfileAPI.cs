@@ -828,7 +828,7 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //              [optional; Default: ""]
         //              Identifies the text of this task to show in logs when running. 
         //              Example RunAction(() => BottingSessionManager.Instance.DynamicSettings.CombatDisabled = false, "Re enable combat");  "Diasble combat behavior" is the text to show in logs
-        RunAction(() => BottingSessionManager.Instance.DynamicSettings.CombatDisabled = true, ActionName: "Diasble combat behavior");
+        RunAction(() => BottingSessionManager.Instance.DynamicSettings.DisableCombat = true, ActionName: "Diasble combat behavior");
 
         //Description:
         //  Performs an async task. Can be used to call async bot methods.
@@ -837,11 +837,11 @@ public class MyProfile : IPMProfile //it is important to implement 'IPMProfile' 
         //          Task
         //              REQUIRED 
         //              The async task to run when running this script in profile. 
-        //              Example RunTask(4402, "/run ...");  4402 is the id of Quest, behavior considered is done when quest id its completed 
+        //              Example RunTask(task, "/run ...");
         //          TaskName
         //              [optional; Default: ""]
         //              Identifies the text of quest to show in logs when running. 
-        RunTask(Task.Delay(5000), TaskName: "Wait 5 seconds");
+        RunTask(token => Task.Delay(5000, token), taskName: "Wait 5 seconds");
     }
 
     public void Train()
