@@ -7,7 +7,6 @@ using PixelMaster.Core.Interfaces;
 using PixelMaster.Core.Profiles;
 using PixelMaster.Core.Behaviors;
 using PixelMaster.Core.Behaviors.Transport;
-using PixelMaster.Services.Behaviors;
 using System.Collections.Generic;
 using System.Numerics;
 using System;
@@ -15,7 +14,6 @@ using System.Linq;
 using AdvancedCombatClasses.Settings;
 using AdvancedCombatClasses.Settings.Era;
 using PixelMaster.Server.Shared;
-using SharpDX.Direct2D1;
 
 namespace CombatClasses
 {

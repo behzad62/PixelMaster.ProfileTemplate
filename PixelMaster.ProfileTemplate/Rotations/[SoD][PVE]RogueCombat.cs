@@ -1,13 +1,19 @@
-using System.Collections.Generic;
-using AdvancedCombatClasses.Settings;
-using AdvancedCombatClasses.Settings.Era;
 using PixelMaster.Core.API;
-using PixelMaster.Core.Behaviors.Transport;
-using PixelMaster.Core.Interfaces;
 using PixelMaster.Core.Managers;
 using PixelMaster.Core.Wow.Objects;
-using PixelMaster.Server.Shared;
+
 using static PixelMaster.Core.API.PMRotationBuilder;
+using PixelMaster.Core.Interfaces;
+using PixelMaster.Core.Profiles;
+using PixelMaster.Core.Behaviors;
+using PixelMaster.Core.Behaviors.Transport;
+using System.Collections.Generic;
+using System.Numerics;
+using System;
+using System.Linq;
+using AdvancedCombatClasses.Settings;
+using AdvancedCombatClasses.Settings.Era;
+using PixelMaster.Server.Shared;
 
 namespace AdvancedCombatClasses.Rotations.Era
 {
